@@ -63,6 +63,19 @@ npm run preview    # serve the production build
 
 Double-click anywhere on the clock to open settings.
 
+## Changelog
+
+### v1.1.0 — Tauri native app
+
+- **Electron → Tauri v2** — the app is now a native macOS app built with
+  Tauri: ~100× smaller installer (DMG ≈ 2 MB vs 209 MB), faster startup and
+  far lower memory use.
+- **Frameless + clean** — no title bar and no top bar: just the floating
+  clock. Drag it anywhere, double-click to open Settings.
+- **World-clock grid** — up to 3 additional timezone clocks (4 total).
+- Plus the existing 12 themes, 6 accents, 6 faces, custom digit colors,
+  gradients/images, chime, autostart, always-on-top and click-through.
+
 ## Desktop packaging (Tauri v2)
 
 ### Prerequisites
