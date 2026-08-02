@@ -1,7 +1,7 @@
 {
   "name": "flipclock",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "A modern macOS-style flip clock web app. Resizable, multi-window ready, Electron/Tauri packaging ready.",
   "author": "Milds3v3n",
