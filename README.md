@@ -99,6 +99,10 @@ The build config is **signing-ready**: `hardenedRuntime`, entitlements
 identity is found, builds stay unsigned (current behavior) — signing and
 notarization kick in automatically once credentials are available.
 
+> **Note:** full **Xcode** is required for the steps below (creating/exporting
+> the certificate and local notarization tooling) — Command Line Tools alone
+> are not enough. CI is unaffected (GitHub runners ship full Xcode).
+
 **Required (only you can do this):**
 
 1. Enroll in the **Apple Developer Program** (developer.apple.com, $99/yr).
