@@ -14,20 +14,8 @@ permissions:
   contents: write # required to create releases and upload assets
 
 env:
-  # Code signing + notarization are OPTIONAL and fully automatic when the
-  # secrets below are configured in the repo (Settings > Secrets > Actions):
-  #   CSC_LINK                     — base64 of your Developer ID Application .p12
-  #   CSC_KEY_PASSWORD             — password for the .p12
-  #   APPLE_ID                     — your Apple ID email
-  #   APPLE_APP_SPECIFIC_PASSWORD  — app-specific password (appleid.apple.com)
-  #   APPLE_TEAM_ID                — 10-char Apple Developer Team ID
-  # Without them the build stays unsigned (as before) and skips notarization.
+  # Never auto-discover certs on CI runners.
   CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-  CSC_LINK: ${{ secrets.CSC_LINK }}
-  CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-  APPLE_ID: ${{ secrets.APPLE_ID }}
-  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
 jobs:
   release:
@@ -57,8 +45,45 @@ jobs:
           fi
           echo "Building release for $TAG"
 
+      # Load signing/notarization credentials ONLY when the repo secrets are
+      # actually set. An unset secret renders as an empty string, and an empty
+      # CSC_LINK makes electron-builder treat it as a cert file path and fail
+      # the build ('not a file'). Exporting nothing keeps the build unsigned.
+      # Secrets are written with the NAME<<EOF delimiter form so special
+      # characters in the .p12 password cannot corrupt the env file.
+      - name: Load signing credentials (if configured)
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.CSC_LINK }}" ]; then
+            echo "::notice::No signing credentials configured — building unsigned."
+            exit 0
+          fi
+          if [ -z "${{ secrets.CSC_KEY_PASSWORD }}" ] || [ -z "${{ secrets.APPLE_ID }}" ] \
+            || [ -z "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" ] || [ -z "${{ secrets.APPLE_TEAM_ID }}" ]; then
+            echo "::error::CSC_LINK is set but CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID must ALL be set for a signed + notarized release."
+            exit 1
+          fi
+          echo "CSC_LINK<<EOF" >> "$GITHUB_ENV"
+          echo "${{ secrets.CSC_LINK }}" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+          echo "CSC_KEY_PASSWORD<<EOF" >> "$GITHUB_ENV"
+          echo "${{ secrets.CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+          echo "APPLE_ID<<EOF" >> "$GITHUB_ENV"
+          echo "${{ secrets.APPLE_ID }}" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+          echo "APPLE_APP_SPECIFIC_PASSWORD<<EOF" >> "$GITHUB_ENV"
+          echo "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+          echo "APPLE_TEAM_ID<<EOF" >> "$GITHUB_ENV"
+          echo "${{ secrets.APPLE_TEAM_ID }}" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+          echo "::notice::Signing credentials loaded — release will be signed + notarized."
+
+      # --publish never: electron-builder sees the git tag and would otherwise
+      # attempt its own implicit publish to GitHub.
       - name: Build universal macOS app
-        run: npm run dist:mac:universal
+        run: npm run build && npx electron-builder --mac --universal --publish never
 
       - name: List artifacts
         run: ls -lh release/

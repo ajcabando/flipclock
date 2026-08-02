@@ -138,6 +138,10 @@ APPLE_TEAM_ID                # 10-char Team ID
 Tag a release with all five set and the DMG ships **signed + notarized** —
 Gatekeeper opens it without warnings. Without them, releases stay unsigned.
 
+> **Tip:** keep the `.p12` password free of shell metacharacters
+> (`" $ \`` backslashes, newlines) — the CI step that loads it validates the
+> other credentials in a shell context, so exotic passwords could break it.
+
 ### Other targets
 
 - `npm run dist:win` / `npm run dist:linux` — Windows / Linux builds
