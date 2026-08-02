@@ -83,6 +83,12 @@ in the browser build).
   keyboard-focusable and always visible on touch devices; double-click still
   works in the browser build).
 - **World-clock grid** — up to 3 additional timezone clocks (4 total).
+- **Mini flip clocks** — the additional timezone clocks are now scaled-down
+  flip clocks (~40% of the main clock): their own split-flap animation,
+  blinking colon and timezone label — bigger than before, always smaller than
+  the main clock.
+- **Rounded corners** — the frameless window has 22px rounded corners; in the
+  transparent Tauri window the desktop shows through the cutouts.
 - Plus the existing 12 themes, 6 accents, 6 faces, custom digit colors,
   gradients/images, chime, autostart, always-on-top and click-through.
 
