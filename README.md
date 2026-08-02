@@ -89,8 +89,9 @@ in the browser build).
   flip clocks (~40% of the main clock): their own split-flap animation,
   blinking colon and timezone label — bigger than before, always smaller than
   the main clock.
-- **Rounded corners** — the frameless window has 22px rounded corners; in the
-  transparent Tauri window the desktop shows through the cutouts.
+- **Rounded corners** — the frameless window has 22px rounded corners; the
+  transparent Tauri window (via `app.macOSPrivateApi: true`) shows the
+  desktop through the cutouts.
 - Plus the existing 12 themes, 6 accents, 6 faces, custom digit colors,
   gradients/images, chime, autostart, always-on-top and click-through.
 
