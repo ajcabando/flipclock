@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from './context/SettingsContext';
 import { Clock } from './components/Clock';
+import { GearIcon } from './components/icons';
 import { useNow } from './hooks/useNow';
 import { useAutoHide } from './hooks/useAutoHide';
 import { useSystemPrefs } from './hooks/useSystemPrefs';
@@ -245,13 +246,17 @@ export default function App() {
   }, []);
 
   return (
-    <div className={`app ${uiHidden ? 'ui-hidden' : ''}`}>
-      {/* Clock — double-click opens settings; drags the window in the Tauri build */}
-      <main
-        className="clock-wrap"
-        data-tauri-drag-region
-        onDoubleClick={panelOpen ? closePanel : openPanel}
-      >
+    // The whole window is a drag region (Tauri build) — grab anywhere to move
+    // it. It's removed while the settings panel is open so the modal backdrop
+    // click-to-close and its controls work normally. Note: dragging swallows
+    // dblclick in Tauri, so the hover-revealed gear is the reliable way to
+    // open Settings; dblclick still works in the browser build.
+    <div
+      className={`app ${uiHidden ? 'ui-hidden' : ''}`}
+      data-tauri-drag-region={panelOpen ? undefined : ''}
+    >
+      {/* Clock — double-click opens settings (browser build) */}
+      <main className="clock-wrap" onDoubleClick={panelOpen ? closePanel : openPanel}>
         <Clock
           now={now}
           animate={animate}
@@ -259,10 +264,23 @@ export default function App() {
         />
       </main>
 
+      {/* Settings gear — fades in on hover (buttons stay clickable inside the
+          drag region, and this is the reliable Settings access in Tauri) */}
+      <button
+        type="button"
+        className="gear-fab"
+        aria-label="Settings"
+        title="Settings"
+        onClick={panelOpen ? closePanel : openPanel}
+        hidden={panelOpen}
+      >
+        <GearIcon />
+      </button>
+
       {/* First-run hint */}
       {hintVisible && (
         <div className="hint" role="status">
-          Double-click anywhere for settings · <kbd className="kbd">F</kbd> fullscreen ·{' '}
+          Move the mouse to the top-right corner for settings · <kbd className="kbd">F</kbd> fullscreen ·{' '}
           <kbd className="kbd">+</kbd>/<kbd className="kbd">−</kbd> size
         </div>
       )}

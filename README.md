@@ -61,9 +61,23 @@ npm run preview    # serve the production build
 | `R` | Reset window |
 | `Esc` | Exit fullscreen / close settings |
 
-Double-click anywhere on the clock to open settings.
+**Drag the window anywhere** to move it. To open Settings, **hover the
+**top-right corner** — a gear button fades in (click it). The gear is the
+reliable way to open Settings in the desktop build: the whole window is a
+drag region, which swallows double-clicks (double-click still opens Settings
+in the browser build).
 
 ## Changelog
+
+### v1.1.1 — drag + settings fix
+
+- **Drag anywhere** — the whole window is now a Tauri drag region (previously
+  only the clock face dragged, and the background couldn't).
+- **Settings gear** — double-click was being swallowed by the drag region, so
+  a hover-revealed **gear button** now sits in the top-right corner as the
+  reliable way to open Settings (it's also keyboard-focusable and always
+  visible on touch devices). Double-click still opens Settings in the browser
+  build.
 
 ### v1.1.0 — Tauri native app
 
@@ -168,11 +182,13 @@ in the packaged app (`getCurrentWindow()` + the autostart plugin) and is a
 safe no-op in the browser. It wires *Always on Top*, *Click Through*
 (`setIgnoreCursorEvents`), window opacity, size & position, launch-at-startup,
 and bounds persistence. The window is transparent + frameless for the floating
-widget look; the clock area carries
-`data-tauri-drag-region` so it drags the window, and double-clicking the
-clock opens Settings (there is no top bar). Rust side: `src-tauri/src/lib.rs`
-registers the autostart plugin; window permissions live in
-`src-tauri/capabilities/default.json`.
+widget look; the **whole window** carries `data-tauri-drag-region` so it
+drags the window from anywhere (the attribute is removed while the Settings
+panel is open so the modal works normally). Dragging swallows double-clicks,
+so a hover-revealed **gear button** in the top-right corner is the reliable
+way to open Settings (buttons stay clickable inside Tauri drag regions). Rust
+side: `src-tauri/src/lib.rs` registers the autostart plugin; window
+permissions live in `src-tauri/capabilities/default.json`.
 
 ## Architecture
 
