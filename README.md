@@ -29,8 +29,9 @@ npm run preview    # serve the production build
 - **Timezones** — Local, UTC, GMT and every IANA zone via
   `Intl.DateTimeFormat` (no external APIs), with presets + search.
 - **12/24 hour**, leading zero, seconds / AM/PM / date toggles, and a
-  **world-clock grid** — add up to 3 extra timezone clocks (4 total) with
-  live times and IANA short-name labels.
+  **world-clock grid** — add up to 4 extra timezone clocks (5 total) in a
+  responsive 2×2 grid of glass flip-clock cards with live times and city
+  labels.
 - **12 themes** (Dark, Light, OLED, Blue, Green, Amber, Rose, Graphite,
   Violet, Teal, Copper, Navy), **6 accent colors** (glow + active controls),
   **custom digit color** (presets + color picker), **6 fonts**, **6 clock
@@ -82,7 +83,8 @@ in the browser build).
   to open Settings (dragging swallows double-clicks; the gear is
   keyboard-focusable and always visible on touch devices; double-click still
   works in the browser build).
-- **World-clock grid** — up to 3 additional timezone clocks (4 total).
+- **World-clock grid** — up to 4 additional timezone clocks (5 total) in a
+  responsive 2×2 grid of glass flip-clock cards.
 - **Mini flip clocks** — the additional timezone clocks are now scaled-down
   flip clocks (~40% of the main clock): their own split-flap animation,
   blinking colon and timezone label — bigger than before, always smaller than

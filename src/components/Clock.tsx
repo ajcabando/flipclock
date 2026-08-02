@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { getTimeParts, tzShortName } from '../lib/time';
+import { getTimeParts, tzCityName, tzShortName } from '../lib/time';
 import { FlipCard } from './FlipCard';
 import { SecondsCounter } from './SecondsCounter';
 import { AMPMIndicator } from './AMPMIndicator';
@@ -65,16 +65,22 @@ export function Clock({
       </div>
 
       {extraClocks.length > 0 && (
-        <div className="worldclocks" role="group" aria-label="Additional timezone clocks">
+        <div
+          className={`worldclocks${extraClocks.length === 1 ? ' worldclocks--single' : ''}`}
+          role="group"
+          aria-label="Additional timezone clocks"
+        >
           {extraClocks.map((tz, i) => {
             const wp = getTimeParts(now, tz, settings.hour12, settings.leadingZero);
             const wpLabel = `${wp.hours.join('')}:${wp.minutes.join('')}`;
+            const city = tzCityName(tz);
+            const tzShort = clockLabel(tz);
             return (
               <div
                 key={`${tz}-${i}`}
                 className="worldclock"
                 role="group"
-                aria-label={`${clockLabel(tz)} — ${wpLabel}`}
+                aria-label={`${city} — ${wpLabel}`}
               >
                 <div className="worldclock__cards">
                   {wp.hours.map((d, j) => (
@@ -85,7 +91,10 @@ export function Clock({
                     <FlipCard key={`wm-${i}-${j}`} value={d} animate={animate} />
                   ))}
                 </div>
-                <span className="worldclock__label">{clockLabel(tz)}</span>
+                <div className="worldclock__meta">
+                  <span className="worldclock__city">{city}</span>
+                  {tzShort !== city && <span className="worldclock__label">{tzShort}</span>}
+                </div>
               </div>
             );
           })}

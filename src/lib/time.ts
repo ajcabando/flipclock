@@ -65,15 +65,10 @@ export function tzShortName(now: Date, timeZone: string): string {
   }
 }
 
-export function formatTzTime(now: Date, timeZone: string, hour12: boolean): string {
-  const tz = resolveTz(timeZone);
-  return new Intl.DateTimeFormat('en-US', {
-    hour: hour12 ? 'numeric' : '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12,
-    timeZone: tz,
-  }).format(now);
+export function tzCityName(timeZone: string): string {
+  if (timeZone === 'local') return 'Local';
+  const last = timeZone.split('/').pop();
+  return last ? last.replace(/_/g, ' ') : timeZone;
 }
 
 export function hour24(now: Date, timeZone: string): number {

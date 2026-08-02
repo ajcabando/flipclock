@@ -39,7 +39,7 @@ export interface Settings {
   showAMPM: boolean;
   leadingZero: boolean;
   showDate: boolean;
-  extraClocks: string[]; // additional timezone clocks (0–3, main clock + up to 3 extras = 4 total)
+  extraClocks: string[]; // additional timezone clocks (0–4, main clock + up to 4 extras = 5 total)
   chime: boolean;
   // Window
   alwaysOnTop: boolean;
@@ -55,8 +55,8 @@ export interface Settings {
   scale: number; // 0.5–2.5 manual scale
 }
 
-// Main clock + up to 3 additional clocks = 4 total.
-export const MAX_EXTRA_CLOCKS = 3;
+// Main clock + up to 4 additional clocks = 5 total (fills the 2×2 grid).
+export const MAX_EXTRA_CLOCKS = 4;
 
 export const DEFAULTS: Settings = {
   theme: 'dark',

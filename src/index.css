@@ -645,33 +645,59 @@ body {
   to { opacity: 1; transform: none; }
 }
 
-/* ── World clock grid (up to 3 additional mini flip clocks) ──────────────────
-   Each extra clock is a scaled-down copy of the main flip clock: the cards
-   container overrides --card-height (via --mini-h, a fraction of the main
+/* ── World clock grid (2×2 dashboard, up to 4 extra clocks) ──────────────────
+   Responsive CSS Grid: two equal columns by default, one column on narrow
+   windows. Each card is a scaled-down copy of the main flip clock — the
+   cards container overrides --card-height (via --mini-h ≈ 55% of the main
    card height), so every flip dimension — card, digits, radius, colon —
    scales down automatically. No recursion: --mini-h reads the inherited
    --card-height, then the cards layer re-points --card-height at it. */
 .worldclocks {
-  margin-top: calc(var(--card-gap) * 0.6);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: calc(var(--card-gap) * 0.6);
-  max-width: min(92vw, 820px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  width: min(92vw, 820px);
+  margin-top: 28px; /* main clock → grid */
+}
+
+/* A single extra clock gets its own centered column instead of an empty cell. */
+.worldclocks--single {
+  grid-template-columns: minmax(0, 1fr);
+  width: min(92vw, 460px);
+}
+
+/* Too narrow for two columns → stack vertically (default 540px window
+   stays 2-column). */
+@media (max-width: 440px) {
+  .worldclocks,
+  .worldclocks--single {
+    grid-template-columns: 1fr;
+    width: min(92vw, 520px);
+  }
 }
 
 .worldclock {
-  --mini-h: clamp(30px, calc(var(--card-height) * 0.4), 52px);
+  --mini-h: clamp(34px, calc(var(--card-height) * 0.55), 68px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 10px 18px 9px;
-  border-radius: calc(var(--mini-h) * 0.42);
+  gap: 10px;
+  padding: 20px;
+  border-radius: 20px;
   background: var(--control-bg);
   border: 1px solid var(--control-border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.worldclock:hover {
+  transform: translateY(-2px);
+  background: var(--control-hover);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--control-border));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28), 0 0 24px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .worldclock__cards {
@@ -682,19 +708,35 @@ body {
 }
 
 .worldclock .flip {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 26px color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 26px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .worldclock .colon {
   padding: 0 calc(var(--card-gap) * 0.3);
 }
 
+.worldclock__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 16px;
+}
+
+.worldclock__city {
+  font-size: clamp(11px, 1.4vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 .worldclock__label {
-  font-size: clamp(10px, 1.2vw, 13px);
+  font-size: clamp(9.5px, 1.15vw, 12px);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-dim);
+  white-space: nowrap;
 }
 
 /* ── Hint / toast ──────────────────────────────────────────────────────────── */
