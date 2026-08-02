@@ -3,79 +3,32 @@
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "description": "A modern macOS-style flip clock web app. Resizable, multi-window ready, Electron/Tauri packaging ready.",
+  "description": "A modern macOS-style flip clock web app. Resizable, multi-window ready, Tauri packaging ready.",
   "author": "Milds3v3n",
   "license": "MIT",
-  "main": "desktop/electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:mac:universal": "npm run build && electron-builder --mac --universal",
-    "dist:mac:dir": "npm run build && electron-builder --mac dir",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:linux": "npm run build && electron-builder --linux"
-  },
-  "build": {
-    "appId": "com.flipclock.app",
-    "productName": "Flip Clock",
-    "asar": true,
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**",
-      "desktop/electron/**"
-    ],
-    "mac": {
-      "category": "public.app-category.utilities",
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "icon": "build/icon.icns",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "notarize": true
-    },
-    "dmg": {
-      "sign": true,
-      "background": "build/dmg-background.png",
-      "iconSize": 96,
-      "window": {
-        "width": 660,
-        "height": 400
-      },
-      "contents": [
-        {
-          "x": 190,
-          "y": 220,
-          "type": "file"
-        },
-        {
-          "x": 470,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    }
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "dist:mac": "tauri build",
+    "dist:mac:universal": "tauri build --target universal-apple-darwin",
+    "dist:mac:dir": "tauri build --no-bundle"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-autostart": "^2.5.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",
+    "@tauri-apps/cli": "^2.11.4",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
-    "electron": "^43.2.0",
-    "electron-builder": "^26.15.3",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
     "vite": "^7.0.4"

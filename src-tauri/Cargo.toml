@@ -1,0 +1,25 @@
+[package]
+name = "flipclock"
+version = "1.0.1"
+description = "A modern macOS-style flip clock web app"
+authors = ["Milds3v3n"]
+edition = "2021"
+
+[lib]
+name = "flipclock_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# macos-private-api is required for transparent windows on macOS.
+tauri = { version = "2", features = [] }
+tauri-plugin-autostart = "2"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

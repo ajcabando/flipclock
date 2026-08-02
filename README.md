@@ -4,9 +4,9 @@ A modern, macOS-style **split-flip clock** web app. Dark matte background, huge
 rounded flip cards, smooth CSS-only flip animations, glassmorphism settings —
 built with React + TypeScript + Vite + Tailwind.
 
-Runs in any browser and is ready to be packaged with **Electron** (skeleton
-included) or **Tauri** for native features like *Always on Top*, *Borderless* and
-*Click Through*.
+Runs in any browser and is packaged as a native macOS app with **Tauri v2**
+(small, fast, low-memory) for native features like *Always on Top*,
+*Borderless* and *Click Through*.
 
 ## Quick start
 
@@ -64,20 +64,37 @@ npm run preview    # serve the production build
 
 Double-click anywhere on the clock to open settings.
 
-## Desktop packaging
+## Desktop packaging (Tauri v2)
 
-### macOS — installable .dmg (Apple Silicon / Intel / Universal)
+### Prerequisites
+
+- **Rust** (`rustup` — `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`, ≥ 1.85 for `edition2024` deps)
+- **Xcode Command Line Tools** (`xcode-select --install`)
+- **create-dmg** (`brew install create-dmg`) — required for the `.dmg` bundle
+- Node deps: `npm install`
+
+> **Releasing:** a new version requires bumping **package.json**, **Cargo.toml**
+> and **tauri.conf.json** in lockstep — the release workflow validates the tag
+> against `tauri.conf.json` only.
+
+### Dev run (live-reload native window)
 
 ```bash
-npm install
-npm run dist:mac        # builds the web app + produces the .dmg & .zip
+npm run tauri:dev   # vite dev server + native window
 ```
 
-Artifacts land in `release/`:
+### macOS — installable .dmg
 
-- `release/Flip Clock-1.0.0-arm64.dmg` — drag-to-Applications installer
-- `release/Flip Clock-1.0.0-arm64-mac.zip` — portable archive
-- `release/mac-arm64/Flip Clock.app` — unpacked bundle
+```bash
+npm run dist:mac               # builds for your current Mac's chip
+npm run dist:mac:universal     # universal build — runs on Intel + Apple Silicon
+npm run dist:mac:dir           # just the unpacked .app (no DMG)
+```
+
+Artifacts land under `src-tauri/target/…/release/bundle/`:
+
+- `bundle/dmg/Flip Clock_<version>_<arch>.dmg` — drag-to-Applications installer
+- `bundle/macos/Flip Clock.app` + `.app.tar.gz` — app bundle / archive
 
 The app is **unsigned** (no Apple Developer ID), so Gatekeeper may block the
 first launch. Fix it once with:
@@ -85,20 +102,10 @@ first launch. Fix it once with:
 - Right-click the app → **Open** → **Open**, or
 - `xattr -dr com.apple.quarantine '/Applications/Flip Clock.app'`
 
-`dist:mac` builds for your current Mac's chip. To target something else
-(typically cross-building), pass an arch explicitly:
-
-```bash
-npx electron-builder --mac --x64       # Intel build from an Apple Silicon Mac
-npx electron-builder --mac --universal # both chips in one app
-```
-
 ### Code signing & notarization (removes the Gatekeeper warning)
 
-The build config is **signing-ready**: `hardenedRuntime`, entitlements
-(`build/entitlements.mac.plist`) and `dmg.sign` are enabled. If no signing
-identity is found, builds stay unsigned (current behavior) — signing and
-notarization kick in automatically once credentials are available.
+The build is **signing-ready** — Tauri picks up credentials from env vars. If
+none are set, builds stay unsigned (current behavior).
 
 > **Note:** full **Xcode** is required for the steps below (creating/exporting
 > the certificate and local notarization tooling) — Command Line Tools alone
@@ -114,12 +121,12 @@ notarization kick in automatically once credentials are available.
 4. For notarization, generate an **app-specific password** at
    appleid.apple.com → Sign-In & Security → App-Specific Passwords.
 
-**Locally**, sign + notarize with these env vars set:
+**Locally**, sign + notarize with these env vars set (Tauri's names):
 
 ```bash
-export CSC_LINK="$(base64 < DeveloperID.p12)"   # or a file path
-read -s CSC_KEY_PASSWORD && export CSC_KEY_PASSWORD
-read -s APPLE_APP_SPECIFIC_PASSWORD && export APPLE_APP_SPECIFIC_PASSWORD
+export APPLE_CERTIFICATE="$(base64 < DeveloperID.p12)"
+read -s APPLE_CERTIFICATE_PASSWORD && export APPLE_CERTIFICATE_PASSWORD
+read -s APPLE_PASSWORD && export APPLE_PASSWORD   # app-specific password
 export APPLE_ID='you@example.com'
 export APPLE_TEAM_ID='XXXXXXXXXX'
 npm run dist:mac:universal
@@ -128,10 +135,10 @@ npm run dist:mac:universal
 **In CI** (the release workflow), set these as repo secrets:
 
 ```
-CSC_LINK                     # base64 of Developer ID Application .p12
-CSC_KEY_PASSWORD             # .p12 password
+APPLE_CERTIFICATE            # base64 of Developer ID Application .p12
+APPLE_CERTIFICATE_PASSWORD   # .p12 password
 APPLE_ID                     # Apple ID email
-APPLE_APP_SPECIFIC_PASSWORD  # app-specific password
+APPLE_PASSWORD               # app-specific password
 APPLE_TEAM_ID                # 10-char Team ID
 ```
 
@@ -142,37 +149,17 @@ Gatekeeper opens it without warnings. Without them, releases stay unsigned.
 > (`" $ \`` backslashes, newlines) — the CI step that loads it validates the
 > other credentials in a shell context, so exotic passwords could break it.
 
-### Other targets
+### How the desktop bridge works
 
-- `npm run dist:win` / `npm run dist:linux` — Windows / Linux builds
-  (note: transparent + frameless windows behave differently there and are not
-  tested).
-- `npm run dist:mac:dir` — build only the unpacked `.app` (no DMG), handy for
-  quick iteration.
-
-### Manual Electron dev run (optional)
-
-```bash
-# (electron is already a devDependency — only run this if it's missing)
-npm i -D electron concurrently wait-on
-# dev: npm run dev in one terminal, then:
-npx electron desktop/electron/main.cjs
-# prod: npm run build, then run main.cjs without VITE_DEV_SERVER_URL
-```
-
-`desktop/electron/main.cjs` wires *Always on Top*, *Click Through*,
-*Borderless*, window opacity, size & position; `preload.cjs` exposes
-`window.desktopAPI`, which the app detects automatically
-(`src/lib/desktop.ts`). The window is transparent + frameless for the floating
-widget look; the top bar is a drag region.
-
-### Tauri
-
-Map the `DesktopBridge` calls in `src/lib/desktop.ts` to
-`@tauri-apps/api/window` (`setAlwaysOnTop`, `setIgnoreCursorEvents` for click
-through, `setDecorations` for borderless, `setOpacity`). Expose it as
-`window.desktopAPI` via `invoke_handler` or a `withGlobalTauri` command
-wrapper, and the UI lights up the desktop toggles automatically.
+`src/lib/desktop.ts` exposes a `DesktopBridge` that maps to `@tauri-apps/api`
+in the packaged app (`getCurrentWindow()` + the autostart plugin) and is a
+safe no-op in the browser. It wires *Always on Top*, *Click Through*
+(`setIgnoreCursorEvents`), *Borderless* (`setDecorations`), window opacity,
+size & position, launch-at-startup, and bounds persistence. The window is
+transparent + frameless for the floating widget look; the top bar carries
+`data-tauri-drag-region` so it drags the window, while its buttons stay
+clickable. Rust side: `src-tauri/src/lib.rs` registers the autostart plugin;
+window permissions live in `src-tauri/capabilities/default.json`.
 
 ## Architecture
 

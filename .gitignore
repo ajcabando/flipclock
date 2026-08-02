@@ -6,7 +6,8 @@ dist/
 dist-ssr/
 *.local
 
-# Packaged desktop releases (DMG/ZIP/installers — hundreds of MB)
+# Tauri build output (hundreds of MB of Rust artifacts + bundles)
+src-tauri/target/
 release/
 *.dmg
 *.zip

@@ -7,6 +7,7 @@ export default defineConfig({
   base: './',
   server: {
     port: 5173,
+    strictPort: true, // Tauri dev expects exactly this URL
     host: true,
   },
 });

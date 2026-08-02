@@ -7,7 +7,7 @@ import { useAutoHide } from './hooks/useAutoHide';
 import { useSystemPrefs } from './hooks/useSystemPrefs';
 import { useFullscreen } from './hooks/useFullscreen';
 import { chime } from './lib/chime';
-import { bridge, isDesktop, loadBounds } from './lib/desktop';
+import { bridge, isDesktop, loadBounds, trackWindowBounds } from './lib/desktop';
 import { GRADIENTS, clamp } from './lib/settings';
 import { getTimeParts, hour24 } from './lib/time';
 
@@ -151,10 +151,11 @@ export default function App() {
     b.setBorderless(settings.borderless);
     b.setWindowOpacity(clamp(settings.transparency, 40, 100) / 100);
     b.setLaunchAtStartup(settings.launchAtStartup);
+    // Persist window bounds so position/size can be restored next launch.
+    trackWindowBounds();
   }, [settings.alwaysOnTop, settings.clickThrough, settings.borderless, settings.transparency, settings.launchAtStartup]);
 
-  // Restore window bounds on launch (desktop build). Saving is handled by the
-  // wrapper via IPC, since browsers don't emit a 'move' event.
+  // Restore window bounds on launch (desktop build).
   useEffect(() => {
     if (!isDesktop) return;
     const bounds = loadBounds();
@@ -255,8 +256,8 @@ export default function App() {
 
   return (
     <div className={`app ${uiHidden ? 'ui-hidden' : ''}`}>
-      {/* Top bar — auto-hides after 3 s idle */}
-      <div className="topbar" role="toolbar" aria-label="Window controls">
+      {/* Top bar — auto-hides after 3 s idle; drags the window in the Tauri build */}
+      <div className="topbar" role="toolbar" aria-label="Window controls" data-tauri-drag-region>
         <button
           type="button"
           className="icon-btn"
