@@ -186,8 +186,10 @@ in the packaged app (`getCurrentWindow()` + the autostart plugin) and is a
 safe no-op in the browser. It wires *Always on Top*, *Click Through*
 (`setIgnoreCursorEvents`), window opacity, size & position, launch-at-startup,
 and bounds persistence. The window is transparent + frameless for the floating
-widget look; the **whole window** carries `data-tauri-drag-region` so it
-drags the window from anywhere (the attribute is removed while the Settings
+widget look (macOS transparency needs `app.macOSPrivateApi: true` in
+`tauri.conf.json` — a private API, so the app can't be submitted to the Mac
+App Store; fine for direct distribution); the **whole window** carries
+`data-tauri-drag-region` so it drags the window from anywhere (the attribute is removed while the Settings
 panel is open so the modal works normally). Dragging swallows double-clicks,
 so a hover-revealed **gear button** in the top-right corner is the reliable
 way to open Settings (buttons stay clickable inside Tauri drag regions). Rust
