@@ -43,7 +43,6 @@ export interface Settings {
   chime: boolean;
   // Window
   alwaysOnTop: boolean;
-  borderless: boolean;
   clickThrough: boolean;
   rememberPosition: boolean;
   rememberSize: boolean;
@@ -83,7 +82,6 @@ export const DEFAULTS: Settings = {
   extraClocks: [],
   chime: false,
   alwaysOnTop: false,
-  borderless: false,
   clickThrough: false,
   rememberPosition: true,
   rememberSize: true,
@@ -216,9 +214,9 @@ export function sharedKey(): string {
 
 function mergeLoaded(raw: unknown): Settings {
   if (!raw || typeof raw !== 'object') return { ...DEFAULTS };
-  const p = raw as Partial<Settings> & { showSecondTz?: boolean; secondTz?: string };
+  const p = raw as Partial<Settings> & { showSecondTz?: boolean; secondTz?: string; borderless?: boolean };
   // Drop legacy fields so they don't get re-persisted as stale keys.
-  const { showSecondTz, secondTz, extraClocks: rawExtras, ...rest } = p;
+  const { showSecondTz, secondTz, borderless, extraClocks: rawExtras, ...rest } = p;
   // Migrate the legacy single "second timezone" (showSecondTz + secondTz)
   // into the new extraClocks list so existing users keep their world clock.
   let extraClocks = Array.isArray(rawExtras) ? rawExtras.slice(0, MAX_EXTRA_CLOCKS) : [];

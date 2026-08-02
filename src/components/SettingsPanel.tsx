@@ -428,16 +428,6 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
             </button>
           </Row>
 
-          <Row label="Borderless" hint="Hidden title bar — floating widget">
-            <Toggle
-              label="Borderless"
-              badge={!isDesktop ? 'desktop' : undefined}
-              disabled={!isDesktop}
-              checked={settings.borderless}
-              onChange={(v) => desktopAction(() => update({ borderless: v }), 'Borderless mode')}
-            />
-          </Row>
-
           <Row label="Click through" hint="Mouse clicks pass to the desktop">
             <Toggle
               label="Click through"

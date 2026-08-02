@@ -147,12 +147,11 @@ export default function App() {
     const b = bridge();
     b.setAlwaysOnTop(settings.alwaysOnTop);
     b.setClickThrough(settings.clickThrough);
-    b.setBorderless(settings.borderless);
     b.setWindowOpacity(clamp(settings.transparency, 40, 100) / 100);
     b.setLaunchAtStartup(settings.launchAtStartup);
     // Persist window bounds so position/size can be restored next launch.
     trackWindowBounds();
-  }, [settings.alwaysOnTop, settings.clickThrough, settings.borderless, settings.transparency, settings.launchAtStartup]);
+  }, [settings.alwaysOnTop, settings.clickThrough, settings.transparency, settings.launchAtStartup]);
 
   // Restore window bounds on launch (desktop build).
   useEffect(() => {

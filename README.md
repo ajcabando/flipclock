@@ -5,8 +5,8 @@ rounded flip cards, smooth CSS-only flip animations, glassmorphism settings —
 built with React + TypeScript + Vite + Tailwind.
 
 Runs in any browser and is packaged as a native macOS app with **Tauri v2**
-(small, fast, low-memory) for native features like *Always on Top*,
-*Borderless* and *Click Through*.
+(small, fast, low-memory) for native features like *Always on Top* and
+*Click Through*.
 
 ## Quick start
 
@@ -43,8 +43,7 @@ npm run preview    # serve the production build
 - **Fullscreen** (F), hourly **chime** (Web Audio, synthesized), date display,
   auto light/dark theme, high-contrast mode.
 - **Launch at startup** — registers with macOS Login Items (desktop build),
-  plus always-on-top, click-through, borderless, opacity and remembered
-  position/size.
+  plus always-on-top, click-through, opacity and remembered position/size.
 - **Persistence** — everything is stored in `localStorage` per instance.
 
 ## Keyboard shortcuts
@@ -154,9 +153,9 @@ Gatekeeper opens it without warnings. Without them, releases stay unsigned.
 `src/lib/desktop.ts` exposes a `DesktopBridge` that maps to `@tauri-apps/api`
 in the packaged app (`getCurrentWindow()` + the autostart plugin) and is a
 safe no-op in the browser. It wires *Always on Top*, *Click Through*
-(`setIgnoreCursorEvents`), *Borderless* (`setDecorations`), window opacity,
-size & position, launch-at-startup, and bounds persistence. The window is
-transparent + frameless for the floating widget look; the clock area carries
+(`setIgnoreCursorEvents`), window opacity, size & position, launch-at-startup,
+and bounds persistence. The window is transparent + frameless for the floating
+widget look; the clock area carries
 `data-tauri-drag-region` so it drags the window, and double-clicking the
 clock opens Settings (there is no top bar). Rust side: `src-tauri/src/lib.rs`
 registers the autostart plugin; window permissions live in

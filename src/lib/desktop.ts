@@ -10,7 +10,6 @@ import { disable as autostartDisable, enable as autostartEnable } from '@tauri-a
 export interface DesktopBridge {
   setAlwaysOnTop(v: boolean): void;
   setClickThrough(v: boolean): void;
-  setBorderless(v: boolean): void;
   setWindowOpacity(v: number): void;
   setWindowSize(w: number, h: number): void;
   setWindowPosition(x: number, y: number): void;
@@ -24,7 +23,6 @@ export const isDesktop = typeof window !== 'undefined' && isTauri();
 const noop: DesktopBridge = {
   setAlwaysOnTop() {},
   setClickThrough() {},
-  setBorderless() {},
   setWindowOpacity() {},
   setWindowSize() {},
   setWindowPosition() {},
@@ -41,9 +39,6 @@ function tauriBridge(): DesktopBridge {
     },
     setClickThrough(v) {
       void win.setIgnoreCursorEvents(v);
-    },
-    setBorderless(v) {
-      void win.setDecorations(!v);
     },
     // Tauri v2 has no native window-opacity API (Rust or JS), and the window
     // is transparent — the CSS `--window-opacity` on .app already fades the
