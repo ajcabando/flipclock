@@ -12,12 +12,14 @@ import {
   THEMES,
   TIMEZONE_PRESETS,
   type BgType,
+  type FaceId,
+  type WorldClock,
 } from '../lib/settings';
 import { isDesktop } from '../lib/desktop';
 import { chime } from '../lib/chime';
-import { Row, Section, Toggle, Slider, Segmented, ChipGroup, DotGroup } from './ui';
+import { Row, Section, Toggle, Slider, Segmented, ChipGroup, DotGroup, Select } from './ui';
 import { TimezoneSelector } from './TimezoneSelector';
-import { CheckIcon, ChevronDownIcon, ExpandIcon, ImageIcon, PlusIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, ExpandIcon, ImageIcon, PlusIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
 
 interface Props {
   open: boolean;
@@ -51,11 +53,23 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
 
   // Pick a preset timezone not already in use for the next added clock.
   const addClock = () => {
-    const used = new Set(settings.extraClocks);
+    const used = new Set(settings.extraClocks.map((c) => c.tz));
     const next =
       TIMEZONE_PRESETS.find((p) => p.id !== 'local' && !used.has(p.id))?.id ?? 'Asia/Tokyo';
-    update({ extraClocks: [...settings.extraClocks, next] });
+    update({ extraClocks: [...settings.extraClocks, { tz: next }] });
   };
+
+  // Move a world clock up/down in the grid order.
+  const moveClock = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= settings.extraClocks.length) return;
+    const next = [...settings.extraClocks];
+    [next[i], next[j]] = [next[j], next[i]];
+    update({ extraClocks: next });
+  };
+
+  const patchClock = (i: number, patch: Partial<WorldClock>) =>
+    update({ extraClocks: settings.extraClocks.map((t, j) => (j === i ? { ...t, ...patch } : t)) });
 
   const onPickImage = (file: File | undefined) => {
     if (!file) return;
@@ -376,27 +390,90 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
               </button>
             </span>
           </Row>
-          {settings.extraClocks.map((tz, i) => (
+          {settings.extraClocks.map((c, i) => (
             <div key={i} className="row row--stack row--indent">
               <div className="row row--flush">
                 <span className="row__label">Clock {i + 2}</span>
-                <button
-                  type="button"
-                  className="icon-btn icon-btn--sm"
-                  aria-label={`Remove clock ${i + 2}`}
-                  title="Remove this clock"
-                  onClick={() => update({ extraClocks: settings.extraClocks.filter((_, j) => j !== i) })}
-                >
-                  <XIcon width={14} height={14} />
-                </button>
+                <span className="row__actions">
+                  <button
+                    type="button"
+                    className="icon-btn icon-btn--sm"
+                    aria-label={`Move clock ${i + 2} up`}
+                    title="Move up"
+                    disabled={i === 0}
+                    onClick={() => moveClock(i, -1)}
+                  >
+                    <ChevronUpIcon width={14} height={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn icon-btn--sm"
+                    aria-label={`Move clock ${i + 2} down`}
+                    title="Move down"
+                    disabled={i === settings.extraClocks.length - 1}
+                    onClick={() => moveClock(i, 1)}
+                  >
+                    <ChevronDownIcon width={14} height={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn icon-btn--sm"
+                    aria-label={`Remove clock ${i + 2}`}
+                    title="Remove this clock"
+                    onClick={() => update({ extraClocks: settings.extraClocks.filter((_, j) => j !== i) })}
+                  >
+                    <XIcon width={14} height={14} />
+                  </button>
+                </span>
               </div>
               <TimezoneSelector
-                value={tz}
-                onChange={(v) =>
-                  update({ extraClocks: settings.extraClocks.map((t, j) => (j === i ? v : t)) })
-                }
+                value={c.tz}
+                onChange={(v) => patchClock(i, { tz: v })}
                 label={`Clock ${i + 2}`}
               />
+              <div className="row row--flush">
+                <span className="row__label">Accent</span>
+                <span className="row__actions">
+                  <button
+                    type="button"
+                    className={`chip ${!c.accent ? 'chip--on' : ''}`}
+                    aria-pressed={!c.accent}
+                    onClick={() => patchClock(i, { accent: undefined })}
+                  >
+                    Auto
+                  </button>
+                  <DotGroup
+                    label={`Clock ${i + 2} accent`}
+                    value={c.accent ?? settings.accent}
+                    options={ACCENTS.map((a) => ({ id: a.id, label: a.label, color: a.hex }))}
+                    onChange={(v) => patchClock(i, { accent: v })}
+                  />
+                </span>
+              </div>
+              <div className="row row--flush">
+                <span className="row__label">Face</span>
+                <span className="row__actions">
+                  <button
+                    type="button"
+                    className={`chip ${!c.face ? 'chip--on' : ''}`}
+                    aria-pressed={!c.face}
+                    onClick={() => patchClock(i, { face: undefined })}
+                  >
+                    Auto
+                  </button>
+                  <Select
+                    label={`Clock ${i + 2} face`}
+                    value={c.face ?? settings.face}
+                    onChange={(v) => patchClock(i, { face: v as FaceId })}
+                  >
+                    {FACES.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </Select>
+                </span>
+              </div>
             </div>
           ))}
 

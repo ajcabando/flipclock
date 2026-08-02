@@ -16,6 +16,17 @@ export interface Background {
   image: string | null; // data URL
 }
 
+/**
+ * An additional world clock. `tz` is 'local' | 'UTC' | 'GMT' | IANA zone.
+ * `accent`/`face` are optional overrides — when unset the clock inherits the
+ * global accent/face.
+ */
+export interface WorldClock {
+  tz: string;
+  accent?: AccentId;
+  face?: FaceId;
+}
+
 export interface Settings {
   // Appearance
   theme: ThemeId;
@@ -39,7 +50,7 @@ export interface Settings {
   showAMPM: boolean;
   leadingZero: boolean;
   showDate: boolean;
-  extraClocks: string[]; // additional timezone clocks (0–4, main clock + up to 4 extras = 5 total)
+  extraClocks: WorldClock[]; // additional timezone clocks (0–4, main clock + up to 4 extras = 5 total)
   chime: boolean;
   // World clock appearance (independent of the main clock)
   wcScale: number; // 0.6–2.0 card scale
@@ -230,9 +241,9 @@ function mergeLoaded(raw: unknown): Settings {
   const { showSecondTz, secondTz, borderless, extraClocks: rawExtras, ...rest } = p;
   // Migrate the legacy single "second timezone" (showSecondTz + secondTz)
   // into the new extraClocks list so existing users keep their world clock.
-  let extraClocks = Array.isArray(rawExtras) ? rawExtras.slice(0, MAX_EXTRA_CLOCKS) : [];
+  let extraClocks = normalizeClocks(rawExtras);
   if (extraClocks.length === 0 && showSecondTz && typeof secondTz === 'string' && secondTz) {
-    extraClocks = [secondTz];
+    extraClocks = [{ tz: secondTz }];
   }
   return {
     ...DEFAULTS,
@@ -240,6 +251,30 @@ function mergeLoaded(raw: unknown): Settings {
     extraClocks,
     background: { ...DEFAULTS.background, ...(rest.background ?? {}) },
   };
+}
+
+/**
+ * Accepts both the current object form ({ tz, accent?, face? }) and the
+ * legacy string form ('Asia/Tokyo') from saved settings, capped to
+ * MAX_EXTRA_CLOCKS.
+ */
+function normalizeClocks(raw: unknown): WorldClock[] {
+  if (!Array.isArray(raw)) return [];
+  // Only accept well-formed entries — invalid/corrupt items are dropped rather
+  // than fabricated into a clock the user never asked for.
+  const out: WorldClock[] = [];
+  for (const c of raw) {
+    if (out.length >= MAX_EXTRA_CLOCKS) break;
+    if (typeof c === 'string') {
+      if (c.length > 0) out.push({ tz: c });
+    } else if (c && typeof c === 'object') {
+      const o = c as Partial<WorldClock>;
+      if (typeof o.tz === 'string' && o.tz.length > 0) {
+        out.push({ tz: o.tz, accent: o.accent, face: o.face });
+      }
+    }
+  }
+  return out;
 }
 
 export function loadSettings(): Settings {

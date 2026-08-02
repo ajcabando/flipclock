@@ -101,6 +101,12 @@ export const ChevronDownIcon = (p: P) => (
   </Svg>
 );
 
+export const ChevronUpIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="m18 15-6-6-6 6" />
+  </Svg>
+);
+
 export const VolumeIcon = (p: P) => (
   <Svg {...p}>
     <path d="M11 5 6 9H2v6h4l5 4V5Z" />

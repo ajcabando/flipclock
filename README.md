@@ -37,6 +37,8 @@ npm run preview    # serve the production build
   fonts, all without touching the main clock (Settings → World Clocks, with a
   one-click reset). Cards reflow automatically as they grow and never
   overflow; in auto-scale mode the whole dashboard keeps fitting the window.
+  Each clock can also get its own **accent color and face**, and clocks can
+  be **reordered** up/down in Settings.
 - **12 themes** (Dark, Light, OLED, Blue, Green, Amber, Rose, Graphite,
   Violet, Teal, Copper, Navy), **6 accent colors** (glow + active controls),
   **custom digit color** (presets + color picker), **6 fonts**, **6 clock
@@ -74,6 +76,18 @@ drag region, which swallows double-clicks (double-click still opens Settings
 in the browser build).
 
 ## Changelog
+
+### v1.1.1 — World clock customization
+
+- **Independent world-clock sizing** — scale the whole world-clock section
+  (60–200%) or fine-tune the time / seconds / timezone-label / city-label
+  fonts in Settings → World Clocks (with a one-click reset). The main clock
+  is never affected; cards reflow automatically and never overflow.
+- **Per-clock accent & face** — each additional clock can have its own accent
+  color and clock face (Auto inherits the global style).
+- **Reorder world clocks** — move any additional clock up or down in
+  Settings.
+- **Digital seconds** — world-clock cards now show a live seconds readout.
 
 ### v1.1.0 — Tauri native app
 

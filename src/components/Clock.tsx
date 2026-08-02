@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { getTimeParts, tzCityName, tzShortName } from '../lib/time';
+import type { WorldClock } from '../lib/settings';
 import { FlipCard } from './FlipCard';
 import { SecondsCounter } from './SecondsCounter';
 import { AMPMIndicator } from './AMPMIndicator';
@@ -22,7 +23,7 @@ export function Clock({
 }: {
   now: Date;
   animate: boolean;
-  extraClocks: string[];
+  extraClocks: WorldClock[];
 }) {
   const { settings } = useSettings();
 
@@ -70,17 +71,19 @@ export function Clock({
           role="group"
           aria-label="Additional timezone clocks"
         >
-          {extraClocks.map((tz, i) => {
-            const wp = getTimeParts(now, tz, settings.hour12, settings.leadingZero);
+          {extraClocks.map((c, i) => {
+            const wp = getTimeParts(now, c.tz, settings.hour12, settings.leadingZero);
             const wpLabel = `${wp.hours.join('')}:${wp.minutes.join('')}`;
-            const city = tzCityName(tz);
-            const tzShort = clockLabel(tz);
+            const city = tzCityName(c.tz);
+            const tzShort = clockLabel(c.tz);
             return (
               <div
-                key={`${tz}-${i}`}
+                key={`${c.tz}-${i}`}
                 className="worldclock"
                 role="group"
                 aria-label={`${city} — ${wpLabel}`}
+                data-face={c.face ?? undefined}
+                data-accent={c.accent ?? undefined}
               >
                 <div className="worldclock__cards">
                   {wp.hours.map((d, j) => (

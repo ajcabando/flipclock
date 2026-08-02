@@ -418,6 +418,17 @@ body {
   border-radius: 11px;
 }
 
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.icon-btn:disabled:hover {
+  background: var(--control-bg);
+  transform: none;
+}
+
 /* ── Clock ─────────────────────────────────────────────────────────────────── */
 .clock-wrap {
   position: relative;
