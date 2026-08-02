@@ -92,6 +92,47 @@ npx electron-builder --mac --x64       # Intel build from an Apple Silicon Mac
 npx electron-builder --mac --universal # both chips in one app
 ```
 
+### Code signing & notarization (removes the Gatekeeper warning)
+
+The build config is **signing-ready**: `hardenedRuntime`, entitlements
+(`build/entitlements.mac.plist`) and `dmg.sign` are enabled. If no signing
+identity is found, builds stay unsigned (current behavior) — signing and
+notarization kick in automatically once credentials are available.
+
+**Required (only you can do this):**
+
+1. Enroll in the **Apple Developer Program** (developer.apple.com, $99/yr).
+2. In Xcode → Settings → Accounts (or the Developer portal), create a
+   **Developer ID Application** certificate and install it in your keychain.
+3. Export it as a **`.p12`** (Keychain Access → right-click → Export) with a
+   password.
+4. For notarization, generate an **app-specific password** at
+   appleid.apple.com → Sign-In & Security → App-Specific Passwords.
+
+**Locally**, sign + notarize with these env vars set:
+
+```bash
+export CSC_LINK="$(base64 < DeveloperID.p12)"   # or a file path
+read -s CSC_KEY_PASSWORD && export CSC_KEY_PASSWORD
+read -s APPLE_APP_SPECIFIC_PASSWORD && export APPLE_APP_SPECIFIC_PASSWORD
+export APPLE_ID='you@example.com'
+export APPLE_TEAM_ID='XXXXXXXXXX'
+npm run dist:mac:universal
+```
+
+**In CI** (the release workflow), set these as repo secrets:
+
+```
+CSC_LINK                     # base64 of Developer ID Application .p12
+CSC_KEY_PASSWORD             # .p12 password
+APPLE_ID                     # Apple ID email
+APPLE_APP_SPECIFIC_PASSWORD  # app-specific password
+APPLE_TEAM_ID                # 10-char Team ID
+```
+
+Tag a release with all five set and the DMG ships **signed + notarized** —
+Gatekeeper opens it without warnings. Without them, releases stay unsigned.
+
 ### Other targets
 
 - `npm run dist:win` / `npm run dist:linux` — Windows / Linux builds

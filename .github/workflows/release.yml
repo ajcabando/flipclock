@@ -14,9 +14,20 @@ permissions:
   contents: write # required to create releases and upload assets
 
 env:
-  # The app is intentionally unsigned (no Apple Developer ID configured),
-  # so never attempt codesigning on CI runners.
+  # Code signing + notarization are OPTIONAL and fully automatic when the
+  # secrets below are configured in the repo (Settings > Secrets > Actions):
+  #   CSC_LINK                     — base64 of your Developer ID Application .p12
+  #   CSC_KEY_PASSWORD             — password for the .p12
+  #   APPLE_ID                     — your Apple ID email
+  #   APPLE_APP_SPECIFIC_PASSWORD  — app-specific password (appleid.apple.com)
+  #   APPLE_TEAM_ID                — 10-char Apple Developer Team ID
+  # Without them the build stays unsigned (as before) and skips notarization.
   CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+  CSC_LINK: ${{ secrets.CSC_LINK }}
+  CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
 jobs:
   release:

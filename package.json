@@ -36,11 +36,14 @@
         "zip"
       ],
       "icon": "build/icon.icns",
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": true
     },
     "dmg": {
-      "sign": false,
+      "sign": true,
       "background": "build/dmg-background.png",
       "iconSize": 96,
       "window": {
