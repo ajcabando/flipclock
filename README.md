@@ -28,8 +28,9 @@ npm run preview    # serve the production build
   (session-scoped). Enable *Share across windows* for live synced settings.
 - **Timezones** — Local, UTC, GMT and every IANA zone via
   `Intl.DateTimeFormat` (no external APIs), with presets + search.
-- **12/24 hour**, leading zero, seconds / AM/PM / date toggles, second
-  timezone mini-clock (world clock mode).
+- **12/24 hour**, leading zero, seconds / AM/PM / date toggles, and a
+  **world-clock grid** — add up to 3 extra timezone clocks (4 total) with
+  live times and IANA short-name labels.
 - **12 themes** (Dark, Light, OLED, Blue, Green, Amber, Rose, Graphite,
   Violet, Teal, Copper, Navy), **6 accent colors** (glow + active controls),
   **custom digit color** (presets + color picker), **6 fonts**, **6 clock
