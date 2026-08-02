@@ -30,8 +30,13 @@ npm run preview    # serve the production build
   `Intl.DateTimeFormat` (no external APIs), with presets + search.
 - **12/24 hour**, leading zero, seconds / AM/PM / date toggles, and a
   **world-clock grid** — add up to 4 extra timezone clocks (5 total) in a
-  responsive 2×2 grid of glass flip-clock cards with live times and city
-  labels.
+  responsive grid of glass flip-clock cards with live times, city labels and
+  digital seconds.
+- **Independent world-clock sizing** — scale the whole world-clock section
+  (60–200%) or fine-tune the time / seconds / timezone-label / city-label
+  fonts, all without touching the main clock (Settings → World Clocks, with a
+  one-click reset). Cards reflow automatically as they grow and never
+  overflow; in auto-scale mode the whole dashboard keeps fitting the window.
 - **12 themes** (Dark, Light, OLED, Blue, Green, Amber, Rose, Graphite,
   Violet, Teal, Copper, Navy), **6 accent colors** (glow + active controls),
   **custom digit color** (presets + color picker), **6 fonts**, **6 clock

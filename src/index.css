@@ -23,6 +23,19 @@
   --flip-duration: 320ms;
   --window-opacity: 1;
 
+  /* World-clock sizing (independent of the main clock) — overridden live
+     from Settings via JS. --wc-time-cap is published by JS so 4 flip cards +
+     colon + padding always fit the grid track. */
+  --fit: 1;
+  --wc-scale: 1;
+  --wc-time-size: 48px;
+  --wc-seconds-size: 20px;
+  --wc-label-size: 16px;
+  --wc-city-size: 13px;
+  --wc-card-padding: 20px;
+  --wc-card-radius: 20px;
+  --wc-time-cap: 1000px;
+
   /* Default = Dark */
   --bg: #0b0b0b;
   --bg-ambient: radial-gradient(120% 90% at 50% 18%, #16161a 0%, #0b0b0b 62%);
@@ -645,29 +658,46 @@ body {
   to { opacity: 1; transform: none; }
 }
 
-/* ── World clock grid (2×2 dashboard, up to 4 extra clocks) ──────────────────
-   Responsive CSS Grid: two equal columns by default, one column on narrow
-   windows. Each card is a scaled-down copy of the main flip clock — the
-   cards container overrides --card-height (via --mini-h ≈ 55% of the main
-   card height), so every flip dimension — card, digits, radius, colon —
-   scales down automatically. No recursion: --mini-h reads the inherited
-   --card-height, then the cards layer re-points --card-height at it. */
+/* ── World clock grid (dashboard, up to 4 extra clocks) ──────────────────────
+   Responsive auto-fit grid: two equal columns by default, reflowing to a
+   single column when the cards outgrow the window (larger World Clock Size)
+   or on narrow windows. Every card dimension — flip cards, digits, seconds,
+   labels, padding, radius, spacing — derives from the World Clocks settings
+   via CSS variables (--wc-*), so the main clock is never affected. --wc-fit
+   = size × auto-fit factor, so in auto-scale mode the whole dashboard keeps
+   fitting the window. Flip-card height follows the Time Font Size (auto
+   height) capped by --wc-time-cap (published from JS) so 4 cards + colon +
+   padding always fit the track — no clipping, no overflow. */
 .worldclocks {
+  --wc-fit: calc(var(--wc-scale) * var(--fit));
+  --wc-pad: calc(var(--wc-card-padding) * var(--wc-fit));
+  --wc-rad: calc(var(--wc-card-radius) * var(--wc-fit));
+  --wc-tz: calc(var(--wc-time-size) * var(--wc-fit));
+  --wc-sec: calc(var(--wc-seconds-size) * var(--wc-fit));
+  --wc-lbl: calc(var(--wc-label-size) * var(--wc-fit));
+  --wc-cty: calc(var(--wc-city-size) * var(--wc-fit));
+  --wc-gap: 20px; /* grid gap (fixed) */
+  --wc-gap-inner: calc(10px * var(--wc-fit));
+  --wc-gap-meta: calc(8px * var(--wc-fit));
+
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  /* min track = max(168px × effective scale, 50% − gap/2): at most 2 columns;
+     when the cards grow past half the grid, auto-fit collapses to 1 column. */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(max(calc(168px * var(--wc-fit)), calc(50% - var(--wc-gap) / 2)), 1fr)
+  );
+  gap: var(--wc-gap);
   width: min(92vw, 820px);
   margin-top: 28px; /* main clock → grid */
 }
 
-/* A single extra clock gets its own centered column instead of an empty cell. */
+/* A single extra clock gets a more compact centered card. */
 .worldclocks--single {
-  grid-template-columns: minmax(0, 1fr);
   width: min(92vw, 460px);
 }
 
-/* Too narrow for two columns → stack vertically (default 540px window
-   stays 2-column). */
+/* Too narrow for two columns → stack vertically. */
 @media (max-width: 440px) {
   .worldclocks,
   .worldclocks--single {
@@ -677,20 +707,17 @@ body {
 }
 
 .worldclock {
-  --mini-h: clamp(34px, calc(var(--card-height) * 0.55), 68px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 20px;
-  border-radius: 20px;
+  gap: var(--wc-gap-inner);
+  padding: var(--wc-pad);
+  border-radius: var(--wc-rad);
   background: var(--control-bg);
   border: 1px solid var(--control-border);
   backdrop-filter: blur(20px) saturate(1.3);
   -webkit-backdrop-filter: blur(20px) saturate(1.3);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease,
-    border-color 0.2s ease;
 }
 
 .worldclock:hover {
@@ -701,10 +728,15 @@ body {
 }
 
 .worldclock__cards {
-  --card-height: var(--mini-h);
+  /* Auto height: flip cards follow the Time Font Size, capped so the row of
+     cards always fits its grid track (cap set by JS via --wc-time-cap). */
+  --card-height: min(
+    calc(var(--wc-tz) / var(--digit-ratio)),
+    calc(var(--wc-time-cap) * var(--fit))
+  );
   display: flex;
   align-items: stretch;
-  gap: calc(var(--card-gap) * 0.45);
+  gap: calc(var(--card-gap) * 0.45 * var(--wc-fit));
 }
 
 .worldclock .flip {
@@ -718,25 +750,69 @@ body {
 .worldclock__meta {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  min-height: 16px;
+  justify-content: space-between;
+  gap: var(--wc-gap-meta);
+  width: 100%;
+}
+
+.worldclock__meta-left {
+  display: flex;
+  align-items: baseline;
+  gap: var(--wc-gap-meta);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.worldclock__city,
+.worldclock__label {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .worldclock__city {
-  font-size: clamp(11px, 1.4vw, 15px);
+  font-size: var(--wc-cty);
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--text);
-  white-space: nowrap;
 }
 
 .worldclock__label {
-  font-size: clamp(9.5px, 1.15vw, 12px);
+  font-size: var(--wc-lbl);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-dim);
+}
+
+.worldclock__seconds {
+  font-size: var(--wc-sec);
+  font-weight: 600;
+  color: var(--digit-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+}
+
+/* Smooth live preview when any World Clock slider moves (spec: 0.25s ease)
+   while keeping theme-change cross-fades at 0.4s and the colon blink at
+   0.15s. Flip animations (rotateX) still win over the transform transition
+   because CSS animations override transitions while running. */
+.worldclock,
+.worldclock__cards,
+.worldclock .flip,
+.worldclock .flip__half,
+.worldclock .flip__digit,
+.worldclock .colon__dot,
+.worldclock__seconds,
+.worldclock__city,
+.worldclock__label {
+  transition: font-size 0.25s ease, height 0.25s ease, padding 0.25s ease,
+    gap 0.25s ease, border-radius 0.25s ease, transform 0.25s ease,
+    background-color 0.4s ease, background 0.25s ease, color 0.4s ease,
+    border-color 0.4s ease, box-shadow 0.4s ease, opacity 0.15s ease;
 }
 
 /* ── Hint / toast ──────────────────────────────────────────────────────────── */

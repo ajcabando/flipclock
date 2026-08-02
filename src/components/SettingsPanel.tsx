@@ -39,6 +39,16 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
     update({ background: { ...settings.background, type } });
   };
 
+  // Restore just the world-clock sizing settings (Settings → World Clocks).
+  const resetWorldClocks = () =>
+    update({
+      wcScale: DEFAULTS.wcScale,
+      wcTimeSize: DEFAULTS.wcTimeSize,
+      wcSecondsSize: DEFAULTS.wcSecondsSize,
+      wcLabelSize: DEFAULTS.wcLabelSize,
+      wcCitySize: DEFAULTS.wcCitySize,
+    });
+
   // Pick a preset timezone not already in use for the next added clock.
   const addClock = () => {
     const used = new Set(settings.extraClocks);
@@ -407,6 +417,67 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
               </button>
             </span>
           </Row>
+        </Section>
+
+        {/* ── World Clocks ───────────────────────────────────────────── */}
+        <Section title="World Clocks">
+          <Row label="Size" hint="Scales every world clock card, independent of the main clock">
+            <Slider
+              label="World clock size"
+              value={settings.wcScale}
+              min={0.6}
+              max={2}
+              step={0.05}
+              onChange={(v) => update({ wcScale: v })}
+              format={(v) => `${Math.round(v * 100)}%`}
+            />
+          </Row>
+          <Row label="Time font" hint="Hours & minutes flip digits">
+            <Slider
+              label="Time font size"
+              value={settings.wcTimeSize}
+              min={28}
+              max={80}
+              onChange={(v) => update({ wcTimeSize: v })}
+              format={(v) => `${v}px`}
+            />
+          </Row>
+          <Row label="Seconds">
+            <Slider
+              label="Seconds font size"
+              value={settings.wcSecondsSize}
+              min={16}
+              max={30}
+              onChange={(v) => update({ wcSecondsSize: v })}
+              format={(v) => `${v}px`}
+            />
+          </Row>
+          <Row label="Timezone label">
+            <Slider
+              label="Timezone label size"
+              value={settings.wcLabelSize}
+              min={12}
+              max={24}
+              onChange={(v) => update({ wcLabelSize: v })}
+              format={(v) => `${v}px`}
+            />
+          </Row>
+          <Row label="City label">
+            <Slider
+              label="City label size"
+              value={settings.wcCitySize}
+              min={10}
+              max={20}
+              onChange={(v) => update({ wcCitySize: v })}
+              format={(v) => `${v}px`}
+            />
+          </Row>
+          <div className="row row--actions">
+            <button type="button" className="btn btn--ghost" onClick={resetWorldClocks}>
+              <ResetIcon />
+              Reset world clock sizes
+            </button>
+          </div>
         </Section>
 
         {/* ── Window ─────────────────────────────────────────────────── */}

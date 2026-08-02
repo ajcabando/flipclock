@@ -92,8 +92,11 @@ export function Clock({
                   ))}
                 </div>
                 <div className="worldclock__meta">
-                  <span className="worldclock__city">{city}</span>
-                  {tzShort !== city && <span className="worldclock__label">{tzShort}</span>}
+                  <span className="worldclock__meta-left">
+                    <span className="worldclock__city">{city}</span>
+                    {tzShort !== city && <span className="worldclock__label">{tzShort}</span>}
+                  </span>
+                  {settings.showSeconds && <span className="worldclock__seconds">{wp.seconds}</span>}
                 </div>
               </div>
             );

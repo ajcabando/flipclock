@@ -41,6 +41,12 @@ export interface Settings {
   showDate: boolean;
   extraClocks: string[]; // additional timezone clocks (0–4, main clock + up to 4 extras = 5 total)
   chime: boolean;
+  // World clock appearance (independent of the main clock)
+  wcScale: number; // 0.6–2.0 card scale
+  wcTimeSize: number; // 28–80 px flip digits (hours/minutes)
+  wcSecondsSize: number; // 16–30 px digital seconds
+  wcLabelSize: number; // 12–24 px timezone label
+  wcCitySize: number; // 10–20 px city label
   // Window
   alwaysOnTop: boolean;
   clickThrough: boolean;
@@ -81,6 +87,11 @@ export const DEFAULTS: Settings = {
   showDate: true,
   extraClocks: [],
   chime: false,
+  wcScale: 1,
+  wcTimeSize: 48,
+  wcSecondsSize: 20,
+  wcLabelSize: 16,
+  wcCitySize: 13,
   alwaysOnTop: false,
   clickThrough: false,
   rememberPosition: true,
