@@ -30,7 +30,10 @@ function useAutoFit(enabled: boolean, nCards: number, extraClocks: number): numb
       const gap = Math.max(10, Math.min(0.014 * vw, 26));
       const colonW = cardW * 0.24;
       const metaH = Math.max(18, Math.min(0.022 * vw, 30)) + 26;
-      const worldH = extraClocks > 0 ? Math.max(34, Math.min(0.05 * vw, 64)) : 0;
+      // World-clock grid: up to ~3 pills per row, plus gap + top margin.
+      const pillH = Math.max(28, Math.min(0.03 * vw, 42));
+      const worldRows = extraClocks > 0 ? Math.ceil(extraClocks / 3) : 0;
+      const worldH = worldRows > 0 ? worldRows * pillH + (worldRows - 1) * 8 + 16 : 0;
       const naturalW = nCards * cardW + colonW + gap * (nCards + 1);
       const naturalH = cardH + metaH + worldH;
       const f = Math.min((vw * 0.92) / naturalW, (vh * 0.82) / naturalH, 2.6);
