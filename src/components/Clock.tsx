@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { getTimeParts, formatTzTime, tzShortName } from '../lib/time';
+import { getTimeParts, tzShortName } from '../lib/time';
 import { FlipCard } from './FlipCard';
 import { SecondsCounter } from './SecondsCounter';
 import { AMPMIndicator } from './AMPMIndicator';
@@ -66,12 +66,29 @@ export function Clock({
 
       {extraClocks.length > 0 && (
         <div className="worldclocks" role="group" aria-label="Additional timezone clocks">
-          {extraClocks.map((tz, i) => (
-            <div key={`${tz}-${i}`} className="worldclock">
-              <span className="worldclock__label">{clockLabel(tz)}</span>
-              <span className="worldclock__time">{formatTzTime(now, tz, settings.hour12)}</span>
-            </div>
-          ))}
+          {extraClocks.map((tz, i) => {
+            const wp = getTimeParts(now, tz, settings.hour12, settings.leadingZero);
+            const wpLabel = `${wp.hours.join('')}:${wp.minutes.join('')}`;
+            return (
+              <div
+                key={`${tz}-${i}`}
+                className="worldclock"
+                role="group"
+                aria-label={`${clockLabel(tz)} — ${wpLabel}`}
+              >
+                <div className="worldclock__cards">
+                  {wp.hours.map((d, j) => (
+                    <FlipCard key={`wh-${i}-${j}`} value={d} animate={animate} />
+                  ))}
+                  <Colon blink={blink} />
+                  {wp.minutes.map((d, j) => (
+                    <FlipCard key={`wm-${i}-${j}`} value={d} animate={animate} />
+                  ))}
+                </div>
+                <span className="worldclock__label">{clockLabel(tz)}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 

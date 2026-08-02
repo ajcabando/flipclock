@@ -294,6 +294,13 @@ body {
   background: var(--bg);
 }
 
+/* In the Tauri build the window is transparent — the rounded corners of
+   .app let the desktop show through the cutouts. Browser keeps a solid page
+   background. */
+[data-desktop] body {
+  background: transparent;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
@@ -313,6 +320,11 @@ body {
   inset: 0;
   display: grid;
   place-items: center;
+  /* Rounded floating-widget corners — visible in the transparent Tauri
+     window; overflow:hidden clips the settings backdrop + any bleed to the
+     same rounded shape. */
+  border-radius: 22px;
+  overflow: hidden;
   opacity: var(--window-opacity);
   transition: opacity 0.3s ease, background 0.4s ease;
   font-family: var(--font-stack);
@@ -343,6 +355,9 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
+  /* Fixed descendants escape .app's overflow:hidden — match the rounded
+     corners so the dim layer doesn't paint square over the cutouts. */
+  border-radius: inherit;
   background: rgba(0, 0, 0, 0.34);
   pointer-events: none;
 }
@@ -630,41 +645,56 @@ body {
   to { opacity: 1; transform: none; }
 }
 
-/* ── World clock grid (up to 3 additional clocks) ──────────────────────────── */
+/* ── World clock grid (up to 3 additional mini flip clocks) ──────────────────
+   Each extra clock is a scaled-down copy of the main flip clock: the cards
+   container overrides --card-height (via --mini-h, a fraction of the main
+   card height), so every flip dimension — card, digits, radius, colon —
+   scales down automatically. No recursion: --mini-h reads the inherited
+   --card-height, then the cards layer re-points --card-height at it. */
 .worldclocks {
   margin-top: calc(var(--card-gap) * 0.6);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: calc(var(--card-gap) * 0.55);
-  max-width: min(92vw, 760px);
+  gap: calc(var(--card-gap) * 0.6);
+  max-width: min(92vw, 820px);
 }
 
 .worldclock {
+  --mini-h: clamp(30px, calc(var(--card-height) * 0.4), 52px);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 6px 14px;
-  border-radius: 999px;
+  gap: 7px;
+  padding: 10px 18px 9px;
+  border-radius: calc(var(--mini-h) * 0.42);
   background: var(--control-bg);
   border: 1px solid var(--control-border);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  font-size: clamp(11px, 1.3vw, 15px);
-  color: var(--text-dim);
+}
+
+.worldclock__cards {
+  --card-height: var(--mini-h);
+  display: flex;
+  align-items: stretch;
+  gap: calc(var(--card-gap) * 0.45);
+}
+
+.worldclock .flip {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 26px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.worldclock .colon {
+  padding: 0 calc(var(--card-gap) * 0.3);
 }
 
 .worldclock__label {
+  font-size: clamp(10px, 1.2vw, 13px);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-dim);
-}
-
-.worldclock__time {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
 }
 
 /* ── Hint / toast ──────────────────────────────────────────────────────────── */
@@ -734,8 +764,10 @@ body {
    the mouse is over the app. Hidden entirely while the panel is open. */
 .gear-fab {
   position: fixed;
-  top: 14px;
-  right: 14px;
+  /* 18px clears the 22px rounded corner so .app's overflow:hidden doesn't
+     clip the button. */
+  top: 18px;
+  right: 18px;
   z-index: 50;
   width: 42px;
   height: 42px;
@@ -805,6 +837,9 @@ body .app.ui-hidden .gear-fab {
   z-index: 60;
   display: grid;
   place-items: center;
+  /* Match .app's rounded corners — fixed descendants escape .app's
+     overflow:hidden, so the backdrop needs its own radius. */
+  border-radius: inherit;
   background: var(--backdrop);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);

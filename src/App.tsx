@@ -30,10 +30,12 @@ function useAutoFit(enabled: boolean, nCards: number, extraClocks: number): numb
       const gap = Math.max(10, Math.min(0.014 * vw, 26));
       const colonW = cardW * 0.24;
       const metaH = Math.max(18, Math.min(0.022 * vw, 30)) + 26;
-      // World-clock grid: up to ~3 pills per row, plus gap + top margin.
-      const pillH = Math.max(28, Math.min(0.03 * vw, 42));
-      const worldRows = extraClocks > 0 ? Math.ceil(extraClocks / 3) : 0;
-      const worldH = worldRows > 0 ? worldRows * pillH + (worldRows - 1) * 8 + 16 : 0;
+      // World-clock grid: mini flip clocks (~2 per row in small windows, 3+ in
+      // wide ones), plus gap + top margin. Budget conservatively so the clock
+      // always fits.
+      const wcH = Math.max(72, Math.min(0.09 * vw, 94));
+      const worldRows = extraClocks > 0 ? Math.ceil(extraClocks / 2) : 0;
+      const worldH = worldRows > 0 ? worldRows * wcH + (worldRows - 1) * 12 + 24 : 0;
       const naturalW = nCards * cardW + colonW + gap * (nCards + 1);
       const naturalH = cardH + metaH + worldH;
       const f = Math.min((vw * 0.92) / naturalW, (vh * 0.82) / naturalH, 2.6);
@@ -85,6 +87,7 @@ export default function App() {
   // ── Apply theme + settings to the DOM ────────────────────────────────────
   useEffect(() => {
     const el = document.documentElement;
+    el.dataset.desktop = isDesktop ? 'true' : '';
     el.dataset.theme = theme;
     el.dataset.accent = settings.accent;
     el.dataset.font = settings.font;
