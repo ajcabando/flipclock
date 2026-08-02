@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "A modern macOS-style flip clock web app. Resizable, multi-window ready, Electron/Tauri packaging ready.",
-  "author": "Flip Clock",
+  "author": "ajcabando",
   "license": "MIT",
   "main": "desktop/electron/main.cjs",
   "scripts": {
