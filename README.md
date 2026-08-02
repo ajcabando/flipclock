@@ -156,10 +156,11 @@ in the packaged app (`getCurrentWindow()` + the autostart plugin) and is a
 safe no-op in the browser. It wires *Always on Top*, *Click Through*
 (`setIgnoreCursorEvents`), *Borderless* (`setDecorations`), window opacity,
 size & position, launch-at-startup, and bounds persistence. The window is
-transparent + frameless for the floating widget look; the top bar carries
-`data-tauri-drag-region` so it drags the window, while its buttons stay
-clickable. Rust side: `src-tauri/src/lib.rs` registers the autostart plugin;
-window permissions live in `src-tauri/capabilities/default.json`.
+transparent + frameless for the floating widget look; the clock area carries
+`data-tauri-drag-region` so it drags the window, and double-clicking the
+clock opens Settings (there is no top bar). Rust side: `src-tauri/src/lib.rs`
+registers the autostart plugin; window permissions live in
+`src-tauri/capabilities/default.json`.
 
 ## Architecture
 

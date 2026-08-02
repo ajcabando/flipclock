@@ -359,30 +359,8 @@ body {
   border: 0;
 }
 
-/* ── Top bar ───────────────────────────────────────────────────────────────── */
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 30;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 20px;
-  -webkit-app-region: drag;
-  transition: opacity 0.35s ease, transform 0.35s ease;
-}
-
-.app.ui-hidden .topbar {
-  opacity: 0;
-  transform: translateY(-12px);
-  pointer-events: none;
-}
-
+/* ── Icon buttons (used inside the settings panel) ────────────────────────── */
 .icon-btn {
-  -webkit-app-region: no-drag;
   width: 40px;
   height: 40px;
   border-radius: 14px;
@@ -410,33 +388,6 @@ body {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-}
-
-.icon-btn--accent {
-  color: var(--accent);
-  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 30%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.icon-btn--accent:hover svg {
-  transform: rotate(25deg);
-  transition: transform 0.3s ease;
-}
-
-.icon-btn--pin .pin-glyph {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  opacity: 0.65;
-  transition: opacity 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.icon-btn--pin .pin-glyph--on {
-  background: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent);
-  opacity: 1;
 }
 
 /* ── Clock ─────────────────────────────────────────────────────────────────── */

@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from './context/SettingsContext';
 import { Clock } from './components/Clock';
-import { CollapseIcon, ExpandIcon, GearIcon } from './components/icons';
 import { useNow } from './hooks/useNow';
 import { useAutoHide } from './hooks/useAutoHide';
 import { useSystemPrefs } from './hooks/useSystemPrefs';
@@ -246,49 +245,14 @@ export default function App() {
     window.setTimeout(() => setPanelMounted(false), 240);
   }, []);
 
-  const desktopAction = useCallback(
-    (fn: () => void, label: string) => {
-      if (isDesktop) fn();
-      else showToast(`${label} is available in the desktop build`);
-    },
-    [showToast],
-  );
-
   return (
     <div className={`app ${uiHidden ? 'ui-hidden' : ''}`}>
-      {/* Top bar — auto-hides after 3 s idle; drags the window in the Tauri build */}
-      <div className="topbar" role="toolbar" aria-label="Window controls" data-tauri-drag-region>
-        <button
-          type="button"
-          className="icon-btn"
-          aria-label={fullscreen.isFs ? 'Exit fullscreen' : 'Enter fullscreen'}
-          title={`Fullscreen (F)`}
-          onClick={fullscreen.toggle}
-        >
-          {fullscreen.isFs ? <CollapseIcon /> : <ExpandIcon />}
-        </button>
-        <button
-          type="button"
-          className="icon-btn icon-btn--pin"
-          aria-label="Always on top (desktop)"
-          title="Always on top (desktop)"
-          onClick={() => desktopAction(() => update({ alwaysOnTop: !settings.alwaysOnTop }), 'Always on top')}
-        >
-          <span className={`pin-glyph ${settings.alwaysOnTop ? 'pin-glyph--on' : ''}`} />
-        </button>
-        <button
-          type="button"
-          className="icon-btn icon-btn--accent"
-          aria-label="Settings"
-          title="Settings (double-click the clock too)"
-          onClick={panelOpen ? closePanel : openPanel}
-        >
-          <GearIcon />
-        </button>
-      </div>
-
-      {/* Clock */}
-      <main className="clock-wrap">
+      {/* Clock — double-click opens settings; drags the window in the Tauri build */}
+      <main
+        className="clock-wrap"
+        data-tauri-drag-region
+        onDoubleClick={panelOpen ? closePanel : openPanel}
+      >
         <Clock
           now={now}
           animate={animate}
