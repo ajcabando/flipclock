@@ -1,0 +1,65 @@
+name: Build & Release
+
+# Trigger: pushing a version tag (e.g. `git tag v1.1.0 && git push origin v1.1.0`)
+# builds the universal macOS app and attaches the DMG + zip to a GitHub Release.
+on:
+  push:
+    tags:
+      - 'v*'
+  # Manual runs from the Actions tab build + verify only (no tag = no release).
+  # Dispatch from a tag ref (e.g. v1.1.0) if you want a manual run to publish.
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # required to create releases and upload assets
+
+env:
+  # The app is intentionally unsigned (no Apple Developer ID configured),
+  # so never attempt codesigning on CI runners.
+  CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+jobs:
+  release:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG_VERSION="v$(npm pkg get version | tr -d '\"')"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::Tag '$TAG' does not match package.json version '$PKG_VERSION'. Bump package.json first."
+            exit 1
+          fi
+          echo "Building release for $TAG"
+
+      - name: Build universal macOS app
+        run: npm run dist:mac:universal
+
+      - name: List artifacts
+        run: ls -lh release/
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            release/*.dmg
+            release/*.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
