@@ -69,23 +69,19 @@ in the browser build).
 
 ## Changelog
 
-### v1.1.1 — drag + settings fix
-
-- **Drag anywhere** — the whole window is now a Tauri drag region (previously
-  only the clock face dragged, and the background couldn't).
-- **Settings gear** — double-click was being swallowed by the drag region, so
-  a hover-revealed **gear button** now sits in the top-right corner as the
-  reliable way to open Settings (it's also keyboard-focusable and always
-  visible on touch devices). Double-click still opens Settings in the browser
-  build.
-
 ### v1.1.0 — Tauri native app
 
 - **Electron → Tauri v2** — the app is now a native macOS app built with
   Tauri: ~100× smaller installer (DMG ≈ 2 MB vs 209 MB), faster startup and
   far lower memory use.
 - **Frameless + clean** — no title bar and no top bar: just the floating
-  clock. Drag it anywhere, double-click to open Settings.
+  clock.
+- **Drag + Settings fix** — the whole window is a Tauri drag region
+  (previously only the clock face dragged, and the background couldn't), and
+  a hover-revealed **gear button** replaced double-click as the reliable way
+  to open Settings (dragging swallows double-clicks; the gear is
+  keyboard-focusable and always visible on touch devices; double-click still
+  works in the browser build).
 - **World-clock grid** — up to 3 additional timezone clocks (4 total).
 - Plus the existing 12 themes, 6 accents, 6 faces, custom digit colors,
   gradients/images, chime, autostart, always-on-top and click-through.
