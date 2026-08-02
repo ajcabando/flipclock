@@ -332,7 +332,7 @@ body {
 .date,
 .seconds,
 .tz-label,
-.secondtz {
+.worldclock {
   transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
@@ -679,9 +679,17 @@ body {
   to { opacity: 1; transform: none; }
 }
 
-/* ── Second timezone mini clock ────────────────────────────────────────────── */
-.secondtz {
-  margin-top: calc(var(--card-gap) * 0.5);
+/* ── World clock grid (up to 3 additional clocks) ──────────────────────────── */
+.worldclocks {
+  margin-top: calc(var(--card-gap) * 0.6);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--card-gap) * 0.55);
+  max-width: min(92vw, 760px);
+}
+
+.worldclock {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -695,7 +703,14 @@ body {
   color: var(--text-dim);
 }
 
-.secondtz__time {
+.worldclock__label {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.worldclock__time {
   color: var(--text);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
@@ -888,6 +903,10 @@ body {
 .row--actions {
   justify-content: flex-start;
   padding-top: 14px;
+}
+
+.row--flush {
+  padding: 0;
 }
 
 .row__text {

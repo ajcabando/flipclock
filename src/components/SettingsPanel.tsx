@@ -8,14 +8,16 @@ import {
   FONT_COLORS,
   FONTS,
   GRADIENTS,
+  MAX_EXTRA_CLOCKS,
   THEMES,
+  TIMEZONE_PRESETS,
   type BgType,
 } from '../lib/settings';
 import { isDesktop } from '../lib/desktop';
 import { chime } from '../lib/chime';
 import { Row, Section, Toggle, Slider, Segmented, ChipGroup, DotGroup } from './ui';
 import { TimezoneSelector } from './TimezoneSelector';
-import { CheckIcon, ChevronDownIcon, ExpandIcon, ImageIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
+import { CheckIcon, ChevronDownIcon, ExpandIcon, ImageIcon, PlusIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
 
 interface Props {
   open: boolean;
@@ -35,6 +37,14 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
 
   const setBackgroundType = (type: BgType) => {
     update({ background: { ...settings.background, type } });
+  };
+
+  // Pick a preset timezone not already in use for the next added clock.
+  const addClock = () => {
+    const used = new Set(settings.extraClocks);
+    const next =
+      TIMEZONE_PRESETS.find((p) => p.id !== 'local' && !used.has(p.id))?.id ?? 'Asia/Tokyo';
+    update({ extraClocks: [...settings.extraClocks, next] });
   };
 
   const onPickImage = (file: File | undefined) => {
@@ -340,15 +350,45 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
             <Toggle label="Show date" checked={settings.showDate} onChange={(v) => update({ showDate: v })} />
           </Row>
 
-          <Row label="Second timezone" hint="World-clock style mini clock">
-            <Toggle label="Second timezone" checked={settings.showSecondTz} onChange={(v) => update({ showSecondTz: v })} />
+          <Row
+            label="Additional clocks"
+            hint={`Add up to ${MAX_EXTRA_CLOCKS} more timezones — ${MAX_EXTRA_CLOCKS + 1} clocks total`}
+          >
+            <span className="row__actions">
+              <button
+                type="button"
+                className="btn btn--ghost"
+                disabled={settings.extraClocks.length >= MAX_EXTRA_CLOCKS}
+                onClick={addClock}
+              >
+                <PlusIcon width={14} height={14} />
+                Add clock
+              </button>
+            </span>
           </Row>
-          {settings.showSecondTz && (
-            <div className="row row--stack row--indent">
-              <span className="row__label">Second zone</span>
-              <TimezoneSelector value={settings.secondTz} onChange={(v) => update({ secondTz: v })} label="Second timezone" />
+          {settings.extraClocks.map((tz, i) => (
+            <div key={i} className="row row--stack row--indent">
+              <div className="row row--flush">
+                <span className="row__label">Clock {i + 2}</span>
+                <button
+                  type="button"
+                  className="icon-btn icon-btn--sm"
+                  aria-label={`Remove clock ${i + 2}`}
+                  title="Remove this clock"
+                  onClick={() => update({ extraClocks: settings.extraClocks.filter((_, j) => j !== i) })}
+                >
+                  <XIcon width={14} height={14} />
+                </button>
+              </div>
+              <TimezoneSelector
+                value={tz}
+                onChange={(v) =>
+                  update({ extraClocks: settings.extraClocks.map((t, j) => (j === i ? v : t)) })
+                }
+                label={`Clock ${i + 2}`}
+              />
             </div>
-          )}
+          ))}
 
           <Row label="Hourly chime" hint="Plays the hour count on the :00">
             <span className="row__actions">

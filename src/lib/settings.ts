@@ -39,8 +39,7 @@ export interface Settings {
   showAMPM: boolean;
   leadingZero: boolean;
   showDate: boolean;
-  showSecondTz: boolean;
-  secondTz: string;
+  extraClocks: string[]; // additional timezone clocks (0–3, main clock + up to 3 extras = 4 total)
   chime: boolean;
   // Window
   alwaysOnTop: boolean;
@@ -56,6 +55,9 @@ export interface Settings {
   autoScale: boolean;
   scale: number; // 0.5–2.5 manual scale
 }
+
+// Main clock + up to 3 additional clocks = 4 total.
+export const MAX_EXTRA_CLOCKS = 3;
 
 export const DEFAULTS: Settings = {
   theme: 'dark',
@@ -78,8 +80,7 @@ export const DEFAULTS: Settings = {
   showAMPM: true,
   leadingZero: true,
   showDate: true,
-  showSecondTz: false,
-  secondTz: 'Asia/Tokyo',
+  extraClocks: [],
   chime: false,
   alwaysOnTop: false,
   borderless: false,
@@ -215,11 +216,20 @@ export function sharedKey(): string {
 
 function mergeLoaded(raw: unknown): Settings {
   if (!raw || typeof raw !== 'object') return { ...DEFAULTS };
-  const p = raw as Partial<Settings>;
+  const p = raw as Partial<Settings> & { showSecondTz?: boolean; secondTz?: string };
+  // Drop legacy fields so they don't get re-persisted as stale keys.
+  const { showSecondTz, secondTz, extraClocks: rawExtras, ...rest } = p;
+  // Migrate the legacy single "second timezone" (showSecondTz + secondTz)
+  // into the new extraClocks list so existing users keep their world clock.
+  let extraClocks = Array.isArray(rawExtras) ? rawExtras.slice(0, MAX_EXTRA_CLOCKS) : [];
+  if (extraClocks.length === 0 && showSecondTz && typeof secondTz === 'string' && secondTz) {
+    extraClocks = [secondTz];
+  }
   return {
     ...DEFAULTS,
-    ...p,
-    background: { ...DEFAULTS.background, ...(p.background ?? {}) },
+    ...rest,
+    extraClocks,
+    background: { ...DEFAULTS.background, ...(rest.background ?? {}) },
   };
 }
 

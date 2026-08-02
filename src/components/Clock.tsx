@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { getTimeParts, formatSecondTz } from '../lib/time';
+import { getTimeParts, formatTzTime, tzShortName } from '../lib/time';
 import { FlipCard } from './FlipCard';
 import { SecondsCounter } from './SecondsCounter';
 import { AMPMIndicator } from './AMPMIndicator';
@@ -18,11 +18,11 @@ function Colon({ blink }: { blink: boolean }) {
 export function Clock({
   now,
   animate,
-  secondTz,
+  extraClocks,
 }: {
   now: Date;
   animate: boolean;
-  secondTz: string | null;
+  extraClocks: string[];
 }) {
   const { settings } = useSettings();
 
@@ -33,7 +33,7 @@ export function Clock({
 
   const blink = now.getSeconds() % 2 === 0;
   const minuteLabel = `${parts.hours.join('')}:${parts.minutes.join('')}${parts.ampm ? ` ${parts.ampm}` : ''}`;
-  const secTzText = secondTz ? formatSecondTz(now, secondTz, settings.hour12) : '';
+  const clockLabel = (tz: string) => tzShortName(now, tz);
 
   return (
     <div
@@ -64,10 +64,14 @@ export function Clock({
         </div>
       </div>
 
-      {secondTz && (
-        <div className="secondtz">
-          <span className="secondtz__label">{secondTz}</span>
-          <span className="secondtz__time">{secTzText}</span>
+      {extraClocks.length > 0 && (
+        <div className="worldclocks" role="group" aria-label="Additional timezone clocks">
+          {extraClocks.map((tz, i) => (
+            <div key={`${tz}-${i}`} className="worldclock">
+              <span className="worldclock__label">{clockLabel(tz)}</span>
+              <span className="worldclock__time">{formatTzTime(now, tz, settings.hour12)}</span>
+            </div>
+          ))}
         </div>
       )}
 

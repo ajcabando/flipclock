@@ -65,7 +65,7 @@ export function tzShortName(now: Date, timeZone: string): string {
   }
 }
 
-export function formatSecondTz(now: Date, timeZone: string, hour12: boolean): string {
+export function formatTzTime(now: Date, timeZone: string, hour12: boolean): string {
   const tz = resolveTz(timeZone);
   return new Intl.DateTimeFormat('en-US', {
     hour: hour12 ? 'numeric' : '2-digit',

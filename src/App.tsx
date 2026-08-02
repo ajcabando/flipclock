@@ -17,7 +17,7 @@ const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
  * Computes a scale so the clock always fits the window when auto-scale is on.
  * Mirrors the CSS sizing formulas in index.css.
  */
-function useAutoFit(enabled: boolean, nCards: number): number {
+function useAutoFit(enabled: boolean, nCards: number, extraClocks: number): number {
   const [fit, setFit] = useState(1);
 
   useEffect(() => {
@@ -30,15 +30,16 @@ function useAutoFit(enabled: boolean, nCards: number): number {
       const gap = Math.max(10, Math.min(0.014 * vw, 26));
       const colonW = cardW * 0.24;
       const metaH = Math.max(18, Math.min(0.022 * vw, 30)) + 26;
+      const worldH = extraClocks > 0 ? Math.max(34, Math.min(0.05 * vw, 64)) : 0;
       const naturalW = nCards * cardW + colonW + gap * (nCards + 1);
-      const naturalH = cardH + metaH;
+      const naturalH = cardH + metaH + worldH;
       const f = Math.min((vw * 0.92) / naturalW, (vh * 0.82) / naturalH, 2.6);
       setFit(clamp(f, 0.4, 2.6));
     };
     compute();
     window.addEventListener('resize', compute);
     return () => window.removeEventListener('resize', compute);
-  }, [enabled, nCards]);
+  }, [enabled, nCards, extraClocks]);
 
   return fit;
 }
@@ -69,7 +70,7 @@ export default function App() {
     [now, settings.timezone, settings.hour12, settings.leadingZero],
   );
   const nCards = parts.hours.length + parts.minutes.length;
-  const autoFit = useAutoFit(settings.autoScale, nCards);
+  const autoFit = useAutoFit(settings.autoScale, nCards, settings.extraClocks.length);
   const scale = settings.autoScale ? autoFit : clamp(settings.scale, 0.5, 2.5);
 
   const showToast = useCallback((msg: string) => {
@@ -287,7 +288,7 @@ export default function App() {
         <Clock
           now={now}
           animate={animate}
-          secondTz={settings.showSecondTz ? settings.secondTz : null}
+          extraClocks={settings.extraClocks}
         />
       </main>
 
