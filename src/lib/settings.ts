@@ -1,7 +1,11 @@
-// ─── Settings model, presets and per-instance persistence ────────────────────
-// Each browser window (instance) gets its own settings key, so unlimited
-// independent clock windows work out of the box. "Share across windows"
-// switches to a shared key and live-syncs via the `storage` event.
+// ─── Settings model, presets and per-window persistence ─────────────────────
+// One flip clock per window. Every window (browser tab or native Tauri
+// window) gets its own settings key — desktop windows key on their stable
+// label, so "Restore Previous Session" recreates windows with the same
+// settings. "Share across windows" switches to a shared key and live-syncs
+// via the `storage` event.
+
+import { getWindowLabel, isDesktop } from './desktop';
 
 export type ThemeId = 'dark' | 'light' | 'oled' | 'blue' | 'green' | 'amber' | 'rose' | 'graphite' | 'violet' | 'teal' | 'copper' | 'navy';
 export type AccentId = 'blue' | 'purple' | 'green' | 'orange' | 'red' | 'white';
@@ -14,17 +18,6 @@ export interface Background {
   type: BgType;
   gradient: string; // gradient id
   image: string | null; // data URL
-}
-
-/**
- * An additional world clock. `tz` is 'local' | 'UTC' | 'GMT' | IANA zone.
- * `accent`/`face` are optional overrides — when unset the clock inherits the
- * global accent/face.
- */
-export interface WorldClock {
-  tz: string;
-  accent?: AccentId;
-  face?: FaceId;
 }
 
 export interface Settings {
@@ -50,19 +43,12 @@ export interface Settings {
   showAMPM: boolean;
   leadingZero: boolean;
   showDate: boolean;
-  extraClocks: WorldClock[]; // additional timezone clocks (0–4, main clock + up to 4 extras = 5 total)
   chime: boolean;
-  // World clock appearance (independent of the main clock)
-  wcScale: number; // 0.6–2.0 card scale
-  wcTimeSize: number; // 28–80 px flip digits (hours/minutes)
-  wcSecondsSize: number; // 16–30 px digital seconds
-  wcLabelSize: number; // 12–24 px timezone label
-  wcCitySize: number; // 10–20 px city label
   // Window
   alwaysOnTop: boolean;
   clickThrough: boolean;
-  rememberPosition: boolean;
-  rememberSize: boolean;
+  borderless: boolean; // frameless floating widget (default); off shows a title bar
+  restorePreviousSession: boolean; // recreate last session's windows on launch
   // Behavior
   launchAtStartup: boolean;
   rememberSettings: boolean;
@@ -71,9 +57,6 @@ export interface Settings {
   autoScale: boolean;
   scale: number; // 0.5–2.5 manual scale
 }
-
-// Main clock + up to 4 additional clocks = 5 total (fills the 2×2 grid).
-export const MAX_EXTRA_CLOCKS = 4;
 
 export const DEFAULTS: Settings = {
   theme: 'dark',
@@ -96,17 +79,11 @@ export const DEFAULTS: Settings = {
   showAMPM: true,
   leadingZero: true,
   showDate: true,
-  extraClocks: [],
   chime: false,
-  wcScale: 1,
-  wcTimeSize: 48,
-  wcSecondsSize: 20,
-  wcLabelSize: 16,
-  wcCitySize: 13,
   alwaysOnTop: false,
   clickThrough: false,
-  rememberPosition: true,
-  rememberSize: true,
+  borderless: true,
+  restorePreviousSession: true,
   launchAtStartup: false,
   rememberSettings: true,
   shareAcrossWindows: false,
@@ -212,8 +189,17 @@ export function clamp(v: number, min: number, max: number): number {
 const OWN_PREFIX = 'flipclock:settings';
 const SHARED_KEY = 'flipclock:settings:shared';
 const INSTANCE_KEY = 'flipclock:instance';
+// A duplicated window seeds its settings from the window that duplicated it.
+const PENDING_KEY = 'flipclock:pending-window';
 
 function instanceId(): string {
+  // Desktop windows key on their stable Tauri label (e.g. "main", "clock-1")
+  // so session restore reuses each window's settings. Browser tabs fall back
+  // to a per-tab random id.
+  if (isDesktop) {
+    const label = getWindowLabel();
+    if (label) return label;
+  }
   try {
     let id = sessionStorage.getItem(INSTANCE_KEY);
     if (!id) {
@@ -223,6 +209,40 @@ function instanceId(): string {
     return id;
   } catch {
     return 'w-fallback';
+  }
+}
+
+/** The window doing the duplicating stores its settings for the new window. */
+export function writePendingSettings(s: Settings): void {
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify(s));
+  } catch {
+    /* storage full / private mode — ignore */
+  }
+}
+
+/**
+ * Persists settings directly to a specific window's own key (used after
+ * duplicating, so the new window keeps its cloned settings even if the user
+ * never changes anything). Shared-window saves already live in the shared key.
+ */
+export function saveSettingsToLabel(s: Settings, label: string): void {
+  if (s.shareAcrossWindows) return; // shared key already written by the source
+  try {
+    localStorage.setItem(`${OWN_PREFIX}:${label}`, JSON.stringify(s));
+  } catch {
+    /* storage full / private mode — ignore */
+  }
+}
+
+function readPendingSettings(): Settings | null {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    localStorage.removeItem(PENDING_KEY);
+    return mergeLoaded(JSON.parse(raw));
+  } catch {
+    return null;
   }
 }
 
@@ -236,49 +256,19 @@ export function sharedKey(): string {
 
 function mergeLoaded(raw: unknown): Settings {
   if (!raw || typeof raw !== 'object') return { ...DEFAULTS };
-  const p = raw as Partial<Settings> & { showSecondTz?: boolean; secondTz?: string; borderless?: boolean };
-  // Drop legacy fields so they don't get re-persisted as stale keys.
-  const { showSecondTz, secondTz, borderless, extraClocks: rawExtras, ...rest } = p;
-  // Migrate the legacy single "second timezone" (showSecondTz + secondTz)
-  // into the new extraClocks list so existing users keep their world clock.
-  let extraClocks = normalizeClocks(rawExtras);
-  if (extraClocks.length === 0 && showSecondTz && typeof secondTz === 'string' && secondTz) {
-    extraClocks = [{ tz: secondTz }];
-  }
+  const p = raw as Partial<Settings>;
   return {
     ...DEFAULTS,
-    ...rest,
-    extraClocks,
-    background: { ...DEFAULTS.background, ...(rest.background ?? {}) },
+    ...p,
+    background: { ...DEFAULTS.background, ...(p.background ?? {}) },
   };
-}
-
-/**
- * Accepts both the current object form ({ tz, accent?, face? }) and the
- * legacy string form ('Asia/Tokyo') from saved settings, capped to
- * MAX_EXTRA_CLOCKS.
- */
-function normalizeClocks(raw: unknown): WorldClock[] {
-  if (!Array.isArray(raw)) return [];
-  // Only accept well-formed entries — invalid/corrupt items are dropped rather
-  // than fabricated into a clock the user never asked for.
-  const out: WorldClock[] = [];
-  for (const c of raw) {
-    if (out.length >= MAX_EXTRA_CLOCKS) break;
-    if (typeof c === 'string') {
-      if (c.length > 0) out.push({ tz: c });
-    } else if (c && typeof c === 'object') {
-      const o = c as Partial<WorldClock>;
-      if (typeof o.tz === 'string' && o.tz.length > 0) {
-        out.push({ tz: o.tz, accent: o.accent, face: o.face });
-      }
-    }
-  }
-  return out;
 }
 
 export function loadSettings(): Settings {
   try {
+    // A duplicated window boots with the settings its source window stored.
+    const pending = readPendingSettings();
+    if (pending) return pending;
     const ownRaw = localStorage.getItem(ownKey());
     const own = ownRaw ? (JSON.parse(ownRaw) as Partial<Settings> | null) : null;
     if (own?.shareAcrossWindows) {

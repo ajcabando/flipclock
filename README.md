@@ -23,22 +23,19 @@ npm run preview    # serve the production build
   no libraries), blinking colon, small animated seconds counter bottom-right,
   AM/PM bottom-left (reference layout).
 - **Fully resizable** — everything scales with `clamp()`; auto-scale keeps the
-  clock fitting the window; manual scale with `+`/`-`.
-- **Multiple independent instances** — every window has its own settings key
-  (session-scoped). Enable *Share across windows* for live synced settings.
+  clock fitting the window; manual scale with `+`/`-`. Smooth proportional
+  scaling on window resize, no clipping or overflow.
+- **Multiple independent windows** — one beautiful flip clock per native
+  window. **File → New Clock Window** (⌘N) opens a fresh clock, **Duplicate
+  Window** (⇧⌘N) clones the current window's settings (theme, timezone, size,
+  transparency, always-on-top…), and **Close Window** (⌘W) closes one. Each
+  window is completely independent — its own timezone, theme, accent, size
+  and position. Enable *Share across windows* for live synced settings.
+- **Restore previous session** — window positions, sizes and settings are
+  persisted; relaunching recreates your full set of clock windows.
 - **Timezones** — Local, UTC, GMT and every IANA zone via
   `Intl.DateTimeFormat` (no external APIs), with presets + search.
-- **12/24 hour**, leading zero, seconds / AM/PM / date toggles, and a
-  **world-clock grid** — add up to 4 extra timezone clocks (5 total) in a
-  responsive grid of glass flip-clock cards with live times, city labels and
-  digital seconds.
-- **Independent world-clock sizing** — scale the whole world-clock section
-  (60–200%) or fine-tune the time / seconds / timezone-label / city-label
-  fonts, all without touching the main clock (Settings → World Clocks, with a
-  one-click reset). Cards reflow automatically as they grow and never
-  overflow; in auto-scale mode the whole dashboard keeps fitting the window.
-  Each clock can also get its own **accent color and face**, and clocks can
-  be **reordered** up/down in Settings.
+- **12/24 hour**, leading zero, seconds / AM/PM / date toggles.
 - **12 themes** (Dark, Light, OLED, Blue, Green, Amber, Rose, Graphite,
   Violet, Teal, Copper, Navy), **6 accent colors** (glow + active controls),
   **custom digit color** (presets + color picker), **6 fonts**, **6 clock
@@ -65,6 +62,9 @@ npm run preview    # serve the production build
 | `M` | Toggle 12 / 24 hour |
 | `H` | Toggle auto-hide UI |
 | `A` | Always on top (desktop build) |
+| `⌘N` | New clock window (desktop) |
+| `⇧⌘N` | Duplicate window (desktop) |
+| `⌘W` | Close window (desktop) |
 | `+` / `−` | Increase / decrease clock size |
 | `R` | Reset window |
 | `Esc` | Exit fullscreen / close settings |
@@ -73,7 +73,9 @@ npm run preview    # serve the production build
 **top-right corner** — a gear button fades in (click it). The gear is the
 reliable way to open Settings in the desktop build: the whole window is a
 drag region, which swallows double-clicks (double-click still opens Settings
-in the browser build).
+in the browser build). In the desktop build, the menu bar has **File → New
+Clock Window / Duplicate Window / Close Window**; multi-window is
+**desktop-only** (the browser build shows a toast).
 
 ## Changelog
 

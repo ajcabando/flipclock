@@ -8,27 +8,32 @@ import {
   FONT_COLORS,
   FONTS,
   GRADIENTS,
-  MAX_EXTRA_CLOCKS,
   THEMES,
-  TIMEZONE_PRESETS,
   type BgType,
-  type FaceId,
-  type WorldClock,
 } from '../lib/settings';
 import { isDesktop } from '../lib/desktop';
 import { chime } from '../lib/chime';
-import { Row, Section, Toggle, Slider, Segmented, ChipGroup, DotGroup, Select } from './ui';
+import { Row, Section, Toggle, Slider, Segmented, ChipGroup, DotGroup } from './ui';
 import { TimezoneSelector } from './TimezoneSelector';
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, ExpandIcon, ImageIcon, PlusIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
+import { CheckIcon, ChevronDownIcon, ExpandIcon, ImageIcon, PlusIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onToast: (msg: string) => void;
   onFullscreen: () => void;
+  onNewWindow: () => void;
+  onDuplicateWindow: () => void;
 }
 
-export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: Props) {
+export default function SettingsPanel({
+  open,
+  onClose,
+  onToast,
+  onFullscreen,
+  onNewWindow,
+  onDuplicateWindow,
+}: Props) {
   const { settings, update, reset } = useSettings();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -40,36 +45,6 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
   const setBackgroundType = (type: BgType) => {
     update({ background: { ...settings.background, type } });
   };
-
-  // Restore just the world-clock sizing settings (Settings → World Clocks).
-  const resetWorldClocks = () =>
-    update({
-      wcScale: DEFAULTS.wcScale,
-      wcTimeSize: DEFAULTS.wcTimeSize,
-      wcSecondsSize: DEFAULTS.wcSecondsSize,
-      wcLabelSize: DEFAULTS.wcLabelSize,
-      wcCitySize: DEFAULTS.wcCitySize,
-    });
-
-  // Pick a preset timezone not already in use for the next added clock.
-  const addClock = () => {
-    const used = new Set(settings.extraClocks.map((c) => c.tz));
-    const next =
-      TIMEZONE_PRESETS.find((p) => p.id !== 'local' && !used.has(p.id))?.id ?? 'Asia/Tokyo';
-    update({ extraClocks: [...settings.extraClocks, { tz: next }] });
-  };
-
-  // Move a world clock up/down in the grid order.
-  const moveClock = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= settings.extraClocks.length) return;
-    const next = [...settings.extraClocks];
-    [next[i], next[j]] = [next[j], next[i]];
-    update({ extraClocks: next });
-  };
-
-  const patchClock = (i: number, patch: Partial<WorldClock>) =>
-    update({ extraClocks: settings.extraClocks.map((t, j) => (j === i ? { ...t, ...patch } : t)) });
 
   const onPickImage = (file: File | undefined) => {
     if (!file) return;
@@ -374,109 +349,6 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
             <Toggle label="Show date" checked={settings.showDate} onChange={(v) => update({ showDate: v })} />
           </Row>
 
-          <Row
-            label="Additional clocks"
-            hint={`Add up to ${MAX_EXTRA_CLOCKS} more timezones — ${MAX_EXTRA_CLOCKS + 1} clocks total`}
-          >
-            <span className="row__actions">
-              <button
-                type="button"
-                className="btn btn--ghost"
-                disabled={settings.extraClocks.length >= MAX_EXTRA_CLOCKS}
-                onClick={addClock}
-              >
-                <PlusIcon width={14} height={14} />
-                Add clock
-              </button>
-            </span>
-          </Row>
-          {settings.extraClocks.map((c, i) => (
-            <div key={i} className="row row--stack row--indent">
-              <div className="row row--flush">
-                <span className="row__label">Clock {i + 2}</span>
-                <span className="row__actions">
-                  <button
-                    type="button"
-                    className="icon-btn icon-btn--sm"
-                    aria-label={`Move clock ${i + 2} up`}
-                    title="Move up"
-                    disabled={i === 0}
-                    onClick={() => moveClock(i, -1)}
-                  >
-                    <ChevronUpIcon width={14} height={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn icon-btn--sm"
-                    aria-label={`Move clock ${i + 2} down`}
-                    title="Move down"
-                    disabled={i === settings.extraClocks.length - 1}
-                    onClick={() => moveClock(i, 1)}
-                  >
-                    <ChevronDownIcon width={14} height={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn icon-btn--sm"
-                    aria-label={`Remove clock ${i + 2}`}
-                    title="Remove this clock"
-                    onClick={() => update({ extraClocks: settings.extraClocks.filter((_, j) => j !== i) })}
-                  >
-                    <XIcon width={14} height={14} />
-                  </button>
-                </span>
-              </div>
-              <TimezoneSelector
-                value={c.tz}
-                onChange={(v) => patchClock(i, { tz: v })}
-                label={`Clock ${i + 2}`}
-              />
-              <div className="row row--flush">
-                <span className="row__label">Accent</span>
-                <span className="row__actions">
-                  <button
-                    type="button"
-                    className={`chip ${!c.accent ? 'chip--on' : ''}`}
-                    aria-pressed={!c.accent}
-                    onClick={() => patchClock(i, { accent: undefined })}
-                  >
-                    Auto
-                  </button>
-                  <DotGroup
-                    label={`Clock ${i + 2} accent`}
-                    value={c.accent ?? settings.accent}
-                    options={ACCENTS.map((a) => ({ id: a.id, label: a.label, color: a.hex }))}
-                    onChange={(v) => patchClock(i, { accent: v })}
-                  />
-                </span>
-              </div>
-              <div className="row row--flush">
-                <span className="row__label">Face</span>
-                <span className="row__actions">
-                  <button
-                    type="button"
-                    className={`chip ${!c.face ? 'chip--on' : ''}`}
-                    aria-pressed={!c.face}
-                    onClick={() => patchClock(i, { face: undefined })}
-                  >
-                    Auto
-                  </button>
-                  <Select
-                    label={`Clock ${i + 2} face`}
-                    value={c.face ?? settings.face}
-                    onChange={(v) => patchClock(i, { face: v as FaceId })}
-                  >
-                    {FACES.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.label}
-                      </option>
-                    ))}
-                  </Select>
-                </span>
-              </div>
-            </div>
-          ))}
-
           <Row label="Hourly chime" hint="Plays the hour count on the :00">
             <span className="row__actions">
               <Toggle label="Hourly chime" checked={settings.chime} onChange={(v) => update({ chime: v })} />
@@ -494,67 +366,6 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
               </button>
             </span>
           </Row>
-        </Section>
-
-        {/* ── World Clocks ───────────────────────────────────────────── */}
-        <Section title="World Clocks">
-          <Row label="Size" hint="Scales every world clock card, independent of the main clock">
-            <Slider
-              label="World clock size"
-              value={settings.wcScale}
-              min={0.6}
-              max={2}
-              step={0.05}
-              onChange={(v) => update({ wcScale: v })}
-              format={(v) => `${Math.round(v * 100)}%`}
-            />
-          </Row>
-          <Row label="Time font" hint="Hours & minutes flip digits">
-            <Slider
-              label="Time font size"
-              value={settings.wcTimeSize}
-              min={28}
-              max={80}
-              onChange={(v) => update({ wcTimeSize: v })}
-              format={(v) => `${v}px`}
-            />
-          </Row>
-          <Row label="Seconds">
-            <Slider
-              label="Seconds font size"
-              value={settings.wcSecondsSize}
-              min={16}
-              max={30}
-              onChange={(v) => update({ wcSecondsSize: v })}
-              format={(v) => `${v}px`}
-            />
-          </Row>
-          <Row label="Timezone label">
-            <Slider
-              label="Timezone label size"
-              value={settings.wcLabelSize}
-              min={12}
-              max={24}
-              onChange={(v) => update({ wcLabelSize: v })}
-              format={(v) => `${v}px`}
-            />
-          </Row>
-          <Row label="City label">
-            <Slider
-              label="City label size"
-              value={settings.wcCitySize}
-              min={10}
-              max={20}
-              onChange={(v) => update({ wcCitySize: v })}
-              format={(v) => `${v}px`}
-            />
-          </Row>
-          <div className="row row--actions">
-            <button type="button" className="btn btn--ghost" onClick={resetWorldClocks}>
-              <ResetIcon />
-              Reset world clock sizes
-            </button>
-          </div>
         </Section>
 
         {/* ── Window ─────────────────────────────────────────────────── */}
@@ -586,18 +397,28 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
             />
           </Row>
 
-          <Row label="Remember position">
+          <Row label="Borderless" hint="Frameless floating widget (off shows a title bar)">
             <Toggle
-              label="Remember position"
+              label="Borderless"
               badge={!isDesktop ? 'desktop' : undefined}
               disabled={!isDesktop}
-              checked={settings.rememberPosition}
-              onChange={(v) => update({ rememberPosition: v })}
+              checked={settings.borderless}
+              onChange={(v) => update({ borderless: v })}
             />
           </Row>
 
-          <Row label="Remember size">
-            <Toggle label="Remember size" checked={settings.rememberSize} onChange={(v) => update({ rememberSize: v })} />
+          <Row label="New clock window" hint="Shortcut: ⌘N">
+            <button type="button" className="btn btn--ghost" onClick={onNewWindow}>
+              <PlusIcon width={14} height={14} />
+              New window
+            </button>
+          </Row>
+
+          <Row label="Duplicate window" hint="Shortcut: ⇧⌘N — clones this window's settings">
+            <button type="button" className="btn btn--ghost" onClick={onDuplicateWindow}>
+              <PlusIcon width={14} height={14} />
+              Duplicate
+            </button>
           </Row>
         </Section>
 
@@ -610,6 +431,16 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
               disabled={!isDesktop}
               checked={settings.launchAtStartup}
               onChange={(v) => update({ launchAtStartup: v })}
+            />
+          </Row>
+
+          <Row label="Restore previous session" hint="Reopen last session's windows on launch">
+            <Toggle
+              label="Restore previous session"
+              badge={!isDesktop ? 'desktop' : undefined}
+              disabled={!isDesktop}
+              checked={settings.restorePreviousSession}
+              onChange={(v) => update({ restorePreviousSession: v })}
             />
           </Row>
 
@@ -669,6 +500,9 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
                 ['M', 'Toggle 12 / 24 hour'],
                 ['H', 'Toggle auto-hide UI'],
                 ['A', 'Always on top (desktop)'],
+                ['⌘N', 'New clock window (desktop)'],
+                ['⇧⌘N', 'Duplicate window (desktop)'],
+                ['⌘W', 'Close window (desktop)'],
                 ['+', 'Increase size'],
                 ['-', 'Decrease size'],
                 ['R', 'Reset window'],
@@ -682,7 +516,8 @@ export default function SettingsPanel({ open, onClose, onToast, onFullscreen }: 
             ))}
           </div>
           <p className="panel-note">
-            Each window keeps its own settings. Open the same URL in a new tab for another independent instance.
+            Each window is an independent clock with its own settings. In the desktop build, open more windows
+            via File → New Clock Window, or ⌘N / ⇧⌘N. Restore Previous Session recreates your windows on launch.
           </p>
         </Section>
 

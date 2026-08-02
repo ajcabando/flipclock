@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { getTimeParts, tzCityName, tzShortName } from '../lib/time';
-import type { WorldClock } from '../lib/settings';
+import { getTimeParts } from '../lib/time';
 import { FlipCard } from './FlipCard';
 import { SecondsCounter } from './SecondsCounter';
 import { AMPMIndicator } from './AMPMIndicator';
@@ -16,15 +15,7 @@ function Colon({ blink }: { blink: boolean }) {
   );
 }
 
-export function Clock({
-  now,
-  animate,
-  extraClocks,
-}: {
-  now: Date;
-  animate: boolean;
-  extraClocks: WorldClock[];
-}) {
+export function Clock({ now, animate }: { now: Date; animate: boolean }) {
   const { settings } = useSettings();
 
   const parts = useMemo(
@@ -34,7 +25,6 @@ export function Clock({
 
   const blink = now.getSeconds() % 2 === 0;
   const minuteLabel = `${parts.hours.join('')}:${parts.minutes.join('')}${parts.ampm ? ` ${parts.ampm}` : ''}`;
-  const clockLabel = (tz: string) => tzShortName(now, tz);
 
   return (
     <div
@@ -64,48 +54,6 @@ export function Clock({
           {settings.showSeconds && <SecondsCounter value={parts.seconds} />}
         </div>
       </div>
-
-      {extraClocks.length > 0 && (
-        <div
-          className={`worldclocks${extraClocks.length === 1 ? ' worldclocks--single' : ''}`}
-          role="group"
-          aria-label="Additional timezone clocks"
-        >
-          {extraClocks.map((c, i) => {
-            const wp = getTimeParts(now, c.tz, settings.hour12, settings.leadingZero);
-            const wpLabel = `${wp.hours.join('')}:${wp.minutes.join('')}`;
-            const city = tzCityName(c.tz);
-            const tzShort = clockLabel(c.tz);
-            return (
-              <div
-                key={`${c.tz}-${i}`}
-                className="worldclock"
-                role="group"
-                aria-label={`${city} — ${wpLabel}`}
-                data-face={c.face ?? undefined}
-                data-accent={c.accent ?? undefined}
-              >
-                <div className="worldclock__cards">
-                  {wp.hours.map((d, j) => (
-                    <FlipCard key={`wh-${i}-${j}`} value={d} animate={animate} />
-                  ))}
-                  <Colon blink={blink} />
-                  {wp.minutes.map((d, j) => (
-                    <FlipCard key={`wm-${i}-${j}`} value={d} animate={animate} />
-                  ))}
-                </div>
-                <div className="worldclock__meta">
-                  <span className="worldclock__meta-left">
-                    <span className="worldclock__city">{city}</span>
-                    {tzShort !== city && <span className="worldclock__label">{tzShort}</span>}
-                  </span>
-                  {settings.showSeconds && <span className="worldclock__seconds">{wp.seconds}</span>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       <div className="sr-only" aria-live="polite">
         {minuteLabel}
