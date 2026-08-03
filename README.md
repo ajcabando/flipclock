@@ -112,8 +112,8 @@ in **Settings → Window** if you'd rather start clean.
 
 ### Windows
 
-1. Download the latest **`Flip Clock_<version>_x64-setup.exe`** (NSIS
-   installer) — or **`Flip Clock_<version>_x64_en-US.msi`** (MSI installer,
+1. Download the latest **`Flip.Clock_<version>_x64-setup.exe`** (NSIS
+   installer) — or **`Flip.Clock_<version>_x64_en-US.msi`** (MSI installer,
    handy for enterprise/GPO deployment) — from the
    [Releases page](https://github.com/ajcabando/flipclock/releases).
 2. Run the installer — it's a standard Windows installer (per-user by
@@ -180,8 +180,8 @@ automatically whenever you push a `v*` tag.
 - **Windows 11 look** — the frameless window matches Windows 11's native
   styling: ~8px rounded corners and a theme-aware 1px edge.
 - **Windows installers** — every release now ships an NSIS installer
-  (`Flip Clock_<version>_x64-setup.exe`) **and** an MSI installer
-  (`Flip Clock_<version>_x64_en-US.msi`), both built by CI on `windows-latest`.
+  (`Flip.Clock_<version>_x64-setup.exe`) **and** an MSI installer
+  (`Flip.Clock_<version>_x64_en-US.msi`), both built by CI on `windows-latest`.
 
 ### v1.1.1 — World clock customization
 
