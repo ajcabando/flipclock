@@ -119,8 +119,9 @@ in **Settings → Window** if you'd rather start clean.
 2. Run the installer — it's a standard Windows installer (per-user by
    default), and it will fetch the WebView2 runtime if you don't have it.
 
-> The installer is unsigned, so Windows SmartScreen may show a blue "Windows
-> protected your PC" warning. Click **More info → Run anyway** the first time.
+> Installers are unsigned by default, so Windows SmartScreen may show a blue
+> "Windows protected your PC" warning. Click **More info → Run anyway** the
+> first time — or configure code signing (see below) to remove it.
 
 > **Windows 11 look:** the frameless window matches Windows 11's native
 > styling — ~8px rounded corners and a subtle 1px edge that adapts to the
@@ -154,6 +155,26 @@ MSVC toolchain and WebView2; the MSI target downloads the WiX toolset on
 first use). The included GitHub Actions workflow
 (`.github/workflows/release.yml`) builds both the NSIS and MSI installers
 automatically whenever you push a `v*` tag.
+
+**Code signing (optional, Windows):** to stop SmartScreen warning on the
+NSIS/MSI installers, the workflow can sign them with your own code-signing
+certificate (`signtool` + a `.pfx`). Setup once:
+
+1. Obtain a code-signing certificate (DigiCert, Sectigo, SSL.com, …) and
+   export it as a password-protected `.pfx`.
+2. Base64-encode it — macOS/Linux: `base64 -i cert.pfx`; Windows:
+   `[Convert]::ToBase64String([IO.File]::ReadAllBytes('cert.pfx'))`.
+3. Add these repository secrets (Settings → Secrets and variables → Actions):
+   - `WINDOWS_CERT_BASE64` — the base64 string from step 2
+   - `WINDOWS_CERT_PASSWORD` — the `.pfx` password
+   - `WINDOWS_TIMESTAMP_URL` — optional; defaults to DigiCert's RFC 3161 server
+4. The next tagged release ships signed installers. Note: a standard (OV)
+   certificate only earns SmartScreen reputation as downloads grow; an **EV**
+   certificate is trusted immediately.
+
+> The installers themselves are signed (that's what SmartScreen checks at
+> download); the app binary embedded inside them is not individually signed,
+> which is fine for normal installs.
 
 ---
 
