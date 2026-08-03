@@ -12,6 +12,7 @@ import {
   createWindow,
   getWindowLabel,
   isDesktop,
+  isWindows,
   loadSession,
   onMenuDuplicate,
 } from './lib/desktop';
@@ -89,6 +90,8 @@ export default function App() {
   useEffect(() => {
     const el = document.documentElement;
     el.dataset.desktop = isDesktop ? 'true' : '';
+    // Platform hook for platform-specific CSS (e.g. the Windows 11 look).
+    el.dataset.platform = isWindows ? 'windows' : 'other';
     el.dataset.theme = theme;
     el.dataset.accent = settings.accent;
     el.dataset.font = settings.font;

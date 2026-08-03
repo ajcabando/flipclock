@@ -1,8 +1,9 @@
 # 🕐 Flip Clock
 
-A beautiful, macOS-native **split-flap flip clock** that floats on your desktop.
-One clean flip clock per window — open as many independent windows as you want,
-each with its own timezone, theme, and settings.
+A beautiful **split-flap flip clock** that floats on your desktop — native on
+**macOS** and **Windows**. One clean flip clock per window — open as many
+independent windows as you want, each with its own timezone, theme, and settings.
+The windows are frameless (no title bar, no browser chrome) on both platforms.
 
 | | |
 | --- | --- |
@@ -49,9 +50,9 @@ animations.
 
 | Shortcut | Action |
 | --- | --- |
-| `⌘ N` | New clock window |
-| `⇧ ⌘ N` | Duplicate window (clones current window's settings) |
-| `⌘ W` | Close window |
+| `⌘ N` / `Ctrl+N` | New clock window |
+| `⇧ ⌘ N` / `Ctrl+Shift+N` | Duplicate window (clones current window's settings) |
+| `⌘ W` / `Ctrl+W` | Close window |
 | `F` | Toggle fullscreen |
 | `T` | Toggle dark / light theme |
 | `S` | Toggle seconds |
@@ -65,6 +66,9 @@ animations.
 
 > **Menu bar (macOS):** `File → New Clock Window` (`⌘N`), `File → Duplicate
 > Window` (`⇧⌘N`), `File → Close Window` (`⌘W`).
+> **Windows:** clock windows are frameless, so there's no native menu — use the
+> `Ctrl` shortcuts above (WebView2 also supplies `Ctrl+C/V/X/A` in the settings
+> fields). Quit with `Alt+F4`, `Ctrl+W` on the last window, or via the taskbar.
 
 ---
 
@@ -78,8 +82,9 @@ animations.
 
 ## 🌍 Multiple Clocks (per-window timezones)
 
-1. Press **`⌘N`** (or `File → New Clock Window`) for a fresh window — or
-   **`⇧⌘N`** to **duplicate** the current one and keep its look.
+1. Press **`⌘N`** / **`Ctrl+N`** (or, on macOS, `File → New Clock Window`) for a
+   fresh window — or **`⇧⌘N`** / **`Ctrl+Shift+N`** to **duplicate** the current
+   one and keep its look.
 2. In each window, open **Settings → Time** and pick a timezone (e.g. Manila,
    UTC, New York, Tokyo…).
 3. Arrange the windows anywhere on your screen — each is an independent,
@@ -89,8 +94,8 @@ Quit with several windows open and relaunch: **Restore Previous Session**
 (default on) brings them all back with their settings and positions. Toggle it
 in **Settings → Window** if you'd rather start clean.
 
-> Multi-window is a desktop feature. In a plain browser tab, `⌘N` shows a
-> notice that it's available in the desktop build.
+> Multi-window is a desktop feature. In a plain browser tab, `⌘N` / `Ctrl+N`
+> shows a notice that it's available in the desktop build.
 
 ---
 
@@ -104,6 +109,22 @@ in **Settings → Window** if you'd rather start clean.
 
 > The app is unsigned (no Apple Developer ID yet), so Gatekeeper may warn on
 > first launch. Fix it once: right-click the app → **Open** → **Open**.
+
+### Windows
+
+1. Download the latest **`Flip Clock_<version>_x64-setup.exe`** (NSIS
+   installer) — or **`Flip Clock_<version>_x64_en-US.msi`** (MSI installer,
+   handy for enterprise/GPO deployment) — from the
+   [Releases page](https://github.com/ajcabando/flipclock/releases).
+2. Run the installer — it's a standard Windows installer (per-user by
+   default), and it will fetch the WebView2 runtime if you don't have it.
+
+> The installer is unsigned, so Windows SmartScreen may show a blue "Windows
+> protected your PC" warning. Click **More info → Run anyway** the first time.
+
+> **Windows 11 look:** the frameless window matches Windows 11's native
+> styling — ~8px rounded corners and a subtle 1px edge that adapts to the
+> theme (light/dark).
 
 ### Browser
 
@@ -119,10 +140,20 @@ npm install
 npm run dev            # live-reload native window (requires Rust + Xcode CLT)
 npm run dist:mac       # installable .dmg for your Mac's chip
 npm run dist:mac:universal   # universal DMG (Intel + Apple Silicon)
+npm run dist:win       # Windows NSIS + MSI installers (run on Windows)
+npm run dist:win:nsis  # Windows NSIS installer only
+npm run dist:win:msi   # Windows MSI installer only
 ```
 
-Prerequisites: [Rust](https://rustup.rs), Xcode Command Line Tools, and
+macOS prerequisites: [Rust](https://rustup.rs), Xcode Command Line Tools, and
 `create-dmg` (`brew install create-dmg`).
+
+Windows: Tauri can't cross-compile from macOS, so build the Windows installers
+on a Windows machine (`npm install && npm run dist:win` — needs Rust with the
+MSVC toolchain and WebView2; the MSI target downloads the WiX toolset on
+first use). The included GitHub Actions workflow
+(`.github/workflows/release.yml`) builds both the NSIS and MSI installers
+automatically whenever you push a `v*` tag.
 
 ---
 
@@ -142,6 +173,15 @@ Prerequisites: [Rust](https://rustup.rs), Xcode Command Line Tools, and
   always-on-top, 12/24-hour format, and seconds display.
 - **Borderless toggle** in Settings → Window (re-enable the title bar if you
   want it).
+- **Windows support** — the same frameless, transparent flip clock now runs
+  natively on Windows (WebView2): `Ctrl+N` / `Ctrl+Shift+N` / `Ctrl+W`
+  shortcuts, platform-aware shortcut hints, and the full feature set
+  (multi-window, session restore, always-on-top, chime…).
+- **Windows 11 look** — the frameless window matches Windows 11's native
+  styling: ~8px rounded corners and a theme-aware 1px edge.
+- **Windows installers** — every release now ships an NSIS installer
+  (`Flip Clock_<version>_x64-setup.exe`) **and** an MSI installer
+  (`Flip Clock_<version>_x64_en-US.msi`), both built by CI on `windows-latest`.
 
 ### v1.1.1 — World clock customization
 

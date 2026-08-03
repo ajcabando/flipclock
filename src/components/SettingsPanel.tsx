@@ -11,11 +11,17 @@ import {
   THEMES,
   type BgType,
 } from '../lib/settings';
-import { isDesktop } from '../lib/desktop';
+import { isDesktop, isWindows } from '../lib/desktop';
 import { chime } from '../lib/chime';
 import { Row, Section, Toggle, Slider, Segmented, ChipGroup, DotGroup } from './ui';
 import { TimezoneSelector } from './TimezoneSelector';
 import { CheckIcon, ChevronDownIcon, ExpandIcon, ImageIcon, PlusIcon, ResetIcon, VolumeIcon, XIcon } from './icons';
+
+// Shortcut hints are platform-specific: macOS uses compact symbol notation
+// (⌘N, ⇧⌘N) while Windows spells the modifiers out (Ctrl+N, Ctrl+Shift+N).
+const NEW_WINDOW_KEY = isWindows ? 'Ctrl+N' : '⌘N';
+const DUP_WINDOW_KEY = isWindows ? 'Ctrl+Shift+N' : '⇧⌘N';
+const CLOSE_WINDOW_KEY = isWindows ? 'Ctrl+W' : '⌘W';
 
 interface Props {
   open: boolean;
@@ -407,14 +413,14 @@ export default function SettingsPanel({
             />
           </Row>
 
-          <Row label="New clock window" hint="Shortcut: ⌘N">
+          <Row label="New clock window" hint={`Shortcut: ${NEW_WINDOW_KEY}`}>
             <button type="button" className="btn btn--ghost" onClick={onNewWindow}>
               <PlusIcon width={14} height={14} />
               New window
             </button>
           </Row>
 
-          <Row label="Duplicate window" hint="Shortcut: ⇧⌘N — clones this window's settings">
+          <Row label="Duplicate window" hint={`Shortcut: ${DUP_WINDOW_KEY} — clones this window's settings`}>
             <button type="button" className="btn btn--ghost" onClick={onDuplicateWindow}>
               <PlusIcon width={14} height={14} />
               Duplicate
@@ -500,9 +506,9 @@ export default function SettingsPanel({
                 ['M', 'Toggle 12 / 24 hour'],
                 ['H', 'Toggle auto-hide UI'],
                 ['A', 'Always on top (desktop)'],
-                ['⌘N', 'New clock window (desktop)'],
-                ['⇧⌘N', 'Duplicate window (desktop)'],
-                ['⌘W', 'Close window (desktop)'],
+                [NEW_WINDOW_KEY, 'New clock window (desktop)'],
+                [DUP_WINDOW_KEY, 'Duplicate window (desktop)'],
+                [CLOSE_WINDOW_KEY, 'Close window (desktop)'],
                 ['+', 'Increase size'],
                 ['-', 'Decrease size'],
                 ['R', 'Reset window'],
@@ -517,7 +523,11 @@ export default function SettingsPanel({
           </div>
           <p className="panel-note">
             Each window is an independent clock with its own settings. In the desktop build, open more windows
-            via File → New Clock Window, or ⌘N / ⇧⌘N. Restore Previous Session recreates your windows on launch.
+            via{' '}
+            {isWindows
+              ? 'the Ctrl+N / Ctrl+Shift+N shortcuts'
+              : 'File → New Clock Window, or ⌘N / ⇧⌘N'}
+            . Restore Previous Session recreates your windows on launch.
           </p>
         </Section>
 

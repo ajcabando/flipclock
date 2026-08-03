@@ -32,6 +32,11 @@ export interface DesktopBridge {
 
 export const isDesktop = typeof window !== 'undefined' && isTauri();
 
+/** True when running on Windows (desktop build or browser) — used to pick
+ * the ⌘ vs Ctrl modifier shown in shortcut hints. */
+export const isWindows =
+  typeof navigator !== 'undefined' && /Windows/i.test(navigator.userAgent);
+
 const noop: DesktopBridge = {
   setAlwaysOnTop() {},
   setClickThrough() {},
@@ -50,7 +55,9 @@ function tauriBridge(): DesktopBridge {
       void win.setAlwaysOnTop(v);
     },
     setClickThrough(v) {
-      void win.setIgnoreCursorEvents(v);
+      // Ignore-cursor-events support varies by platform/version — swallow any
+      // rejection instead of leaking an unhandled promise error.
+      void win.setIgnoreCursorEvents(v).catch(() => {});
     },
     setWindowSize(w, h) {
       void win.setSize(new LogicalSize(w, h));

@@ -22,6 +22,8 @@
 
   --flip-duration: 320ms;
   --window-opacity: 1;
+  /* Windows 11-style 1px window outline (theme-aware edge of the widget) */
+  --window-edge: rgba(255, 255, 255, 0.14);
 
   /* Default = Dark */
   --bg: #0b0b0b;
@@ -78,6 +80,7 @@
   --panel-bg: rgba(255, 255, 255, 0.74);
   --panel-border: rgba(0, 0, 0, 0.09);
   --backdrop: rgba(0, 0, 0, 0.24);
+  --window-edge: rgba(0, 0, 0, 0.14);
   --text: #1d1d1f;
   --text-dim: rgba(0, 0, 0, 0.55);
   --control-bg: rgba(0, 0, 0, 0.05);
@@ -345,6 +348,17 @@ body {
 .seconds,
 .tz-label {
   transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Windows — match Windows 11's native ~8px window corner radius and add a
+   subtle 1px edge, so the floating clock reads as a native rounded panel.
+   Done in CSS rather than set_shadow(true): the retained native frame that
+   set_shadow enables draws a border straight across the corners of
+   transparent windows (tauri-apps/tauri#9287), while CSS keeps the edge
+   theme-aware and behaves identically on Windows 10/11. */
+[data-platform="windows"] .app {
+  border-radius: 8px;
+  border: 1px solid var(--window-edge);
 }
 
 [data-bg="gradient"] .app { background: var(--bg-gradient); }

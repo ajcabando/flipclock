@@ -11,11 +11,15 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Instant;
 
+#[cfg(target_os = "macos")]
 use tauri::menu::{Menu, MenuItemBuilder, PredefinedMenuItem, Submenu};
 use tauri::{
-    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, RunEvent, Runtime, WebviewUrl,
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, RunEvent, WebviewUrl,
     WebviewWindowBuilder, WindowEvent,
 };
+// `Runtime` is only used by the macOS-only menu builder.
+#[cfg(target_os = "macos")]
+use tauri::Runtime;
 use tauri_plugin_autostart::MacosLauncher;
 
 const SESSION_FILE: &str = "session.json";
@@ -154,7 +158,13 @@ fn spawn_window(
 }
 
 // ─── Menu ────────────────────────────────────────────────────────────────────
+// macOS only: the app menu lives in the global menu bar, and several
+// PredefinedMenuItems it uses (About, Hide, Hide Others, Show All) exist only
+// on macOS. On Windows the clock windows are frameless, so a native menu bar
+// wouldn't render anyway — the frontend handles the same shortcuts (Ctrl+N,
+// Ctrl+Shift+N, Ctrl+W) directly, and WebView2 supplies the Edit shortcuts.
 
+#[cfg(target_os = "macos")]
 fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     let new_window = MenuItemBuilder::with_id("new-window", "New Clock Window")
         .accelerator("CmdOrCtrl+N")
@@ -292,8 +302,11 @@ pub fn run() {
             let data = state.data.clone();
             app.manage(Mutex::new(state));
             write_session(handle, &data);
-            let menu = build_menu(handle)?;
-            app.set_menu(menu)?;
+            #[cfg(target_os = "macos")]
+            {
+                let menu = build_menu(handle)?;
+                app.set_menu(menu)?;
+            }
             Ok(())
         })
         .on_menu_event(|app, event| match event.id().as_ref() {
