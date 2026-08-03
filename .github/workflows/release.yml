@@ -165,7 +165,10 @@ jobs:
       - name: Build Windows app (Tauri)
         run: npx tauri build --bundles nsis,msi
 
+      # bash is used explicitly: Windows runners default to PowerShell, where
+      # `ls -lh` (Git Bash syntax) is not a valid Get-ChildItem parameter.
       - name: List artifacts
+        shell: bash
         run: |
           echo '--- nsis ---'
           ls -lh src-tauri/target/release/bundle/nsis/
